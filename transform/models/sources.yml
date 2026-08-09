@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Extracto CSV de alohas-recruiting-study-case.production.
+      Versionado en data/raw/ para poder correr dbt sin credenciales BQ.
+    meta:
+      external_location: "read_csv_auto('../data/raw/{name}.csv', header=true)"
+    tables:
+      - name: dim_product
+        description: Catálogo de producto (1 fila por SKU).
+        columns:
+          - name: sku
+            tests: [not_null, unique]
+          - name: name
+          - name: category
+          - name: base_price
+          - name: cost
+
+      - name: fct_shipment
+        description: Hecho de envíos (1 fila por shipment_id).
+        columns:
+          - name: shipment_id
+            tests: [not_null, unique]
+          - name: shipping_method
+          - name: shipping_cost
+          - name: country
+
+      - name: fct_sale_order_line
+        description: >
+          Líneas de pedido. Sin clave natural (A-01); surrogate key en staging.
+        columns:
+          - name: channel
+          - name: sku
+          - name: shipment_id
+          - name: quantity_sold
+          - name: quantity_returned
+          - name: gross_sale
+          - name: taxes
+          - name: net_sales
+          - name: created_at

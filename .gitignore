@@ -1,0 +1,32 @@
+# Credenciales — nunca deben salir del portatil
+*.json.key
+*-credentials.json
+application_default_credentials.json
+service-account*.json
+.env
+.env.*
+
+# Warehouse local regenerable (dbt-duckdb); el raw CSV sí se versiona
+data/**/*.duckdb
+data/**/*.duckdb.wal
+*.duckdb
+*.duckdb.wal
+*.parquet
+
+# Salidas de auditoría exploratoria (no el raw del pipeline)
+analysis/audit/out/
+
+# Entornos y build
+.venv/
+venv/
+__pycache__/
+*.pyc
+target/
+dbt_packages/
+logs/
+.quarto/
+node_modules/
+.cursor/
+
+# User files
+archivo/

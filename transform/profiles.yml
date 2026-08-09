@@ -1,0 +1,13 @@
+# Perfil local del case.
+# Trabajar desde transform/:  cd transform && dbt run
+# (DBT_PROFILES_DIR lo exporta source .venv/bin/activate)
+#
+# path relativo al CWD = transform/
+alohas:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/alohas.duckdb
+      threads: 4
+      schema: main
