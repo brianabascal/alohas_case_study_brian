@@ -27,6 +27,8 @@ logs/
 .quarto/
 node_modules/
 .cursor/
+.vscode/
+.shots/
 
 # User files
 archivo/

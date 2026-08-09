@@ -21,6 +21,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 
 PROJECT = "alohas-recruiting-study-case"
 LOCATION = "EU"
@@ -76,6 +77,28 @@ def flatten(value):
     return value
 
 
+def to_iso_utc(value):
+    """La REST API devuelve los TIMESTAMP como segundos epoch ('1.7378902E9').
+
+    Escrito asi en un CSV no hay motor que lo lea como fecha, y quien abra el
+    fichero no sabe que esta mirando. Se guarda en UTC y con precision de
+    segundo, que es la que trae el dataset.
+    """
+    if value in (None, ""):
+        return value
+    return datetime.fromtimestamp(float(value), tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def read_rows(payload: dict, types: list[str]) -> list[list]:
+    return [
+        [
+            to_iso_utc(flatten(cell)) if kind == "TIMESTAMP" else flatten(cell)
+            for cell, kind in zip(row["f"], types)
+        ]
+        for row in payload.get("rows", [])
+    ]
+
+
 def run(sql: str, token: str, dry_run: bool, max_bytes: int) -> tuple[list[str], list[list]]:
     body = {
         "query": sql,
@@ -92,8 +115,10 @@ def run(sql: str, token: str, dry_run: bool, max_bytes: int) -> tuple[list[str],
     if dry_run:
         return [], []
 
-    columns = [f["name"] for f in result.get("schema", {}).get("fields", [])]
-    rows = [[flatten(cell) for cell in row["f"]] for row in result.get("rows", [])]
+    fields = result.get("schema", {}).get("fields", [])
+    columns = [f["name"] for f in fields]
+    types = [f.get("type") for f in fields]
+    rows = read_rows(result, types)
 
     job_id = result["jobReference"]["jobId"]
     token_page = result.get("pageToken")
@@ -103,7 +128,7 @@ def run(sql: str, token: str, dry_run: bool, max_bytes: int) -> tuple[list[str],
             f"?location={LOCATION}&pageToken={token_page}",
             token,
         )
-        rows += [[flatten(cell) for cell in row["f"]] for row in page.get("rows", [])]
+        rows += read_rows(page, types)
         token_page = page.get("pageToken")
 
     return columns, rows

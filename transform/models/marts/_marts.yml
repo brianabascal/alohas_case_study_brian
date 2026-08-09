@@ -1,0 +1,91 @@
+version: 2
+
+models:
+  - name: fct_sale_line
+    description: >
+      Hecho publicado a grano de línea de pedido, con la escalera de ingresos, el
+      mes de venta en hora local y las etiquetas de calendario de la sección 01.
+      Incluye las líneas sin ficha de producto, que son ingreso real; la sección
+      03 las excluirá del margen porque no tienen coste (D-09).
+    columns:
+      - name: sale_order_line_sk
+        tests: [not_null, unique]
+      - name: channel
+        tests:
+          - not_null
+          - accepted_values:
+              values: [online, retail, wholesale, marketplace]
+      - name: is_partial_month
+        description: >
+          Cierto en los dos meses de los extremos del dataset, que están
+          incompletos y no entran en ninguna comparativa.
+        tests: [not_null]
+      - name: sales_year
+        description: >
+          Ventana anual a la que pertenece la venta. Nulo solo el primer día del
+          dataset, que no cabe en ninguna de las dos ventanas de 365 días.
+        tests:
+          - accepted_values:
+              values: [year_1, year_2]
+
+  - name: rpt_channel_revenue_ladder
+    description: >
+      Preguntas 1, 4 y 5. Una fila por canal más la fila TODOS: la escalera de lo
+      cobrado al ingreso neto, y la cuota de cada canal en tres peldaños distintos
+      para enseñar que el ranking cambia según dónde se mire.
+    columns:
+      - name: channel
+        tests: [not_null, unique]
+      - name: net_revenue
+        tests: [not_null]
+
+  - name: rpt_channel_monthly
+    description: >
+      Preguntas 6, 9, 10 y 14. Serie mensual por canal con tasa de devolución,
+      cuota del mes, media móvil de tres meses y comparativa contra el mismo mes
+      del año anterior.
+    columns:
+      - name: sale_month
+        tests: [not_null]
+      - name: channel
+        tests: [not_null]
+      - name: yoy_pct
+        description: >
+          Vacío a propósito cuando el mes o su homólogo del año anterior están
+          incompletos.
+
+  - name: rpt_channel_growth
+    description: >
+      Preguntas 2, 3, 7 y 8. Una fila por canal más TODOS, comparando dos ventanas
+      de 365 días: crecimiento en euros y en porcentaje, cuánto del crecimiento
+      total aporta cada canal, y cuántos puntos de crecimiento se pierden por el
+      camino en devoluciones.
+    columns:
+      - name: channel
+        tests: [not_null, unique]
+
+  - name: rpt_channel_returns_trend
+    description: >
+      Pregunta 9. Tasa de devolución de cada canal en los cuatro medios años que
+      caben en las dos ventanas de comparación. Sirve para distinguir un deterioro
+      sostenido, que sube tramo tras tramo, de un medio año suelto que mueve la
+      media del año entero.
+    columns:
+      - name: channel
+        tests: [not_null]
+      - name: half_number
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4]
+      - name: return_rate_pct
+        tests: [not_null]
+
+  - name: rpt_category_mix
+    description: >
+      Pregunta 3. Cuota de cada categoría en las dos ventanas anuales, para saber
+      si el ingreso medio por unidad se movió por mezcla. Excluye las líneas sin
+      ficha de producto, que no tienen categoría.
+    columns:
+      - name: category
+        tests: [not_null, unique]

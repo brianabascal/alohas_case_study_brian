@@ -1,8 +1,9 @@
 # Atajos. dbt se lanza desde transform/ (sin --project-dir / --profiles-dir).
-PYTHON ?= .venv/bin/python
-DBT ?= .venv/bin/dbt
+# Rutas absolutas: las recetas de dbt hacen cd a transform/ antes de ejecutar.
+PYTHON ?= $(CURDIR)/.venv/bin/python
+DBT ?= $(CURDIR)/.venv/bin/dbt
 
-.PHONY: venv extract debug run test build
+.PHONY: venv extract debug run test build report
 
 venv:
 	pyenv exec python -m venv .venv
@@ -22,3 +23,7 @@ test:
 	cd transform && $(DBT) test
 
 build: run test
+
+# Deja el report en report/index.html, listo para abrir en el navegador.
+report:
+	$(PYTHON) report/build_report.py

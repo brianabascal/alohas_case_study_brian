@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int_sale_line
+    description: >
+      Grano: una línea de pedido. Aplica la conversión horaria a Europe/Madrid
+      (D-17) y la escalera de ingresos (D-15). Es el único sitio donde vive esa
+      lógica.
+    columns:
+      - name: sale_order_line_sk
+        description: Clave sintética heredada de staging (D-10).
+        tests: [not_null, unique]
+      - name: sale_date
+        description: Fecha de la venta en hora de Barcelona, no en UTC.
+        tests: [not_null]
+      - name: revenue_ex_tax
+        description: >
+          El campo `net_sales` del dataset, renombrado: es la venta menos el
+          impuesto, NO el neto de devoluciones.
+        tests: [not_null]
+      - name: net_revenue
+        description: Ingreso sin IVA y descontando lo devuelto. El titular del report.
+        tests: [not_null]
+      - name: is_catalog_product
+        description: Falso en las 750 líneas que venden artículos fuera de catálogo (DQ-01).
+        tests: [not_null]
+
+  - name: int_dataset_window
+    description: >
+      Una sola fila con los límites del dataset, los dos meses incompletos y las
+      dos ventanas de 365 días que se comparan en la sección 01.
+    columns:
+      - name: last_sale_date
+        description: Fecha de corte del dataset, derivada del dato y no escrita a mano.
+        tests: [not_null, unique]

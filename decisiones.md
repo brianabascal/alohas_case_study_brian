@@ -500,13 +500,16 @@ ruido estacional puro—, y semanal para la curva de maduración de devoluciones
 Decirlo así ya es responder mejor que eligiendo uno.
 
 **Zona horaria: `Europe/Madrid`.** Las fechas vienen en UTC y Alohas opera desde
-Barcelona. Una venta a las 00:30 UTC del 1 de noviembre es del 31 de octubre en
-Madrid. Afecta al cierre de cada mes y al recuento de Black Friday, así que se
-convierte antes de agrupar y se dice en una línea.
+Barcelona, que va una o dos horas por delante. Una venta a las 23:30 UTC del 31 de
+octubre es del 1 de noviembre en Madrid. Afecta al cierre de cada mes y al
+recuento de Black Friday, así que se convierte antes de agrupar y se dice en una
+línea.
 
-**Fecha de corte: 29 de mayo de 2026.** Es el último día con datos, y hace falta
-para poder marcar qué meses están inmaduros en devoluciones. Sin eso no se puede
-pintar honestamente ni un gráfico de la sección 02.
+**Fecha de corte: 29 de mayo de 2026**, que en hora de Barcelona arrastra siete
+líneas sueltas al día 30. Hace falta saberla para poder marcar qué meses están
+inmaduros en devoluciones y para que las dos ventanas anuales de la sección 01
+comparen periodos del mismo tamaño. Sin eso no se puede pintar honestamente ni un
+gráfico de la sección 02.
 
 ### [D-20] La sección 01 declara que el canal es casi una etiqueta
 
