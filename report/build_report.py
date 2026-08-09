@@ -50,31 +50,22 @@ class Document:
     footer: str
 
 
-# index.html sigue en 1 de 3 hasta fusionar; index2.html es la 02 aislada.
 DOCUMENTS = (
     Document(
-        filename="index.html",
-        sections=("seccion_01_canales_report.md",),
+        filename="report_v1.html",
+        sections=(
+            "seccion_01_canales_report.md",
+            "seccion_02_hipotesis_report.md",
+        ),
         title="ALOHAS · case study de Analytics Engineer",
         headline="ALOHAS · cómo se mide este negocio",
-        meta_suffix="secciones publicadas: 1 de 3",
+        meta_suffix="secciones publicadas: 2 de 3",
         footer=(
-            "Generado con <code>report/build_report.py</code> a partir de los marts "
-            "de dbt. Las cifras salen de <code>rpt_*</code>; el texto no calcula "
-            "nada por su cuenta."
-        ),
-    ),
-    Document(
-        filename="index2.html",
-        sections=("seccion_02_hipotesis_report.md",),
-        title="ALOHAS · 02 Net sales y devoluciones tardías",
-        headline="ALOHAS · net sales y devoluciones que llegan tarde",
-        meta_suffix="sección 02 · borrador aislado (aún no fusionado)",
-        footer=(
-            "Generado con <code>report/build_report.py</code>. El esquema es una "
-            "propuesta; los gráficos de madurez son ilustraciones con la curva "
-            "declarada en <code>report/curva_devoluciones.py</code>, no una "
-            "medición del dataset."
+            "Generado con <code>report/build_report.py</code>. La sección 01 lee "
+            "marts <code>rpt_*</code>; la 02 es una propuesta de esquema y sus "
+            "gráficos de madurez son ilustraciones "
+            "(<code>report/curva_devoluciones.py</code>), no una medición del "
+            "dataset."
         ),
     ),
 )
