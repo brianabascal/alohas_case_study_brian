@@ -14,12 +14,14 @@ Uso (desde la raiz del repo, con los marts ya construidos):
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import duckdb
 import markdown
 import plotly.graph_objects as go
 import plotly.offline
+from plotly.subplots import make_subplots
 
 ROOT = Path(__file__).resolve().parents[1]
 DATABASE = ROOT / "data" / "alohas.duckdb"
@@ -27,6 +29,11 @@ OUTPUT = ROOT / "report" / "index.html"
 
 # Al cerrar las secciones 02 y 03 se anaden aqui y el report se une solo.
 SECTIONS = ("seccion_01_canales_report.md",)
+
+# Los .md se enlazan entre si con rutas relativas para que funcionen leyendolos en
+# GitHub. En el HTML esas rutas no llevan a ninguna parte, asi que al renderizar se
+# reescriben contra el repositorio.
+REPO = "https://github.com/brianabascal/alohas_case_study_brian/blob/main"
 
 # Un color por canal, el mismo en todos los graficos: el lector no deberia tener
 # que releer la leyenda en cada figura.
@@ -59,18 +66,27 @@ def pct(value, decimals: int = 1) -> str:
 # Graficos
 # --------------------------------------------------------------------------- #
 
-def base_layout(fig: go.Figure, height: int = 400, top_margin: int = 50) -> go.Figure:
+def base_layout(
+    fig: go.Figure,
+    height: int = 400,
+    top_margin: int = 50,
+    bottom_margin: int = 10,
+) -> go.Figure:
     fig.update_layout(
         height=height,
         font=dict(family=FONT, size=13, color=INK),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        margin=dict(l=10, r=10, t=top_margin, b=10),
+        margin=dict(l=10, r=10, t=top_margin, b=bottom_margin),
         title=dict(font=dict(size=15), x=0, xanchor="left"),
         # Formato espanol: coma decimal y punto de millares.
         separators=",.",
         hoverlabel=dict(font=dict(family=FONT, size=12)),
-        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, title=None),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.0, x=0, title=None,
+            # Sin esto plotly invierte la leyenda de las barras apiladas.
+            traceorder="normal",
+        ),
     )
     fig.update_xaxes(showgrid=False, linecolor="#dfe3e8", ticks="outside", tickcolor="#dfe3e8")
     fig.update_yaxes(showgrid=True, gridcolor="#eef1f4", zeroline=False)
@@ -166,6 +182,76 @@ def chart_mensual(con: duckdb.DuckDBPyConnection) -> go.Figure:
     return base_layout(fig, 420)
 
 
+def chart_yoy(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """El mismo crecimiento en euros y en porcentaje, uno al lado del otro.
+
+    Hacen falta los dos paneles: en euros los canales no se parecen en nada, y en
+    porcentaje se parecen tanto que la mezcla no se mueve. Cada panel solo cuenta
+    la mitad de la historia.
+    """
+    rows = con.sql("""
+        select channel, net_revenue_y1, net_revenue_y2, net_revenue_growth_pct
+        from rpt_channel_growth
+        where channel <> 'TODOS'
+        order by net_revenue_y2
+    """).fetchall()
+    (media,) = con.sql("""
+        select net_revenue_growth_pct from rpt_channel_growth where channel = 'TODOS'
+    """).fetchone()
+
+    canales = [r[0] for r in rows]
+    fig = make_subplots(rows=1, cols=2, shared_yaxes=True,
+                        horizontal_spacing=0.06, column_widths=[0.62, 0.38])
+
+    for label, column, color in (("Año 1", 1, "#cbd5e1"), ("Año 2", 2, "#1f2933")):
+        fig.add_trace(go.Bar(
+            name=label,
+            orientation="h",
+            y=canales,
+            x=[float(r[column]) for r in rows],
+            marker=dict(color=color),
+            text=[eur(r[column]) for r in rows],
+            textposition="outside",
+            textfont=dict(size=11),
+            hovertemplate="%{y} · " + label + ": %{x:,.0f} €<extra></extra>",
+        ), row=1, col=1)
+
+    fig.add_trace(go.Bar(
+        showlegend=False,
+        orientation="h",
+        y=canales,
+        x=[float(r[3]) for r in rows],
+        marker=dict(color=[COLORS[c] for c in canales]),
+        text=["+" + pct(r[3]) for r in rows],
+        textposition="outside",
+        textfont=dict(size=11),
+        hovertemplate="%{y}: +%{x:.2f}% sobre el año anterior<extra></extra>",
+    ), row=1, col=2)
+
+    fig.add_vline(x=float(media), row=1, col=2, line=dict(color="#9aa5b1", dash="dot"))
+
+    fig.update_layout(
+        title=(
+            "Ingreso neto de cada canal, año 1 contra año 2"
+            "<br><span style='font-size:12px'>La línea de puntos es el crecimiento"
+            f" del negocio entero, +{pct(media)}</span>"
+        ),
+        barmode="group",
+        bargap=0.35,
+    )
+    fig.update_yaxes(showgrid=False)
+    eje = dict(title_font=dict(size=11, color="#6b7280"))
+    fig.update_xaxes(
+        title_text="ingreso neto del año", tickformat=",.0f", ticksuffix=" €",
+        range=[0, max(float(r[2]) for r in rows) * 1.42], row=1, col=1, **eje,
+    )
+    fig.update_xaxes(
+        title_text="crecimiento sobre el año anterior", ticksuffix="%",
+        range=[0, 30], row=1, col=2, **eje,
+    )
+    return base_layout(fig, 400, top_margin=105, bottom_margin=45)
+
+
 def chart_crecimiento(con: duckdb.DuckDBPyConnection) -> go.Figure:
     """Crecer rapido y mover dinero no son lo mismo."""
     rows = con.sql("""
@@ -233,12 +319,90 @@ def chart_devoluciones(con: duckdb.DuckDBPyConnection) -> go.Figure:
     return base_layout(fig, 420, top_margin=105)
 
 
+def chart_estacionalidad(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Cuánto del periodo cabe en Black Friday y Navidad, canal a canal.
+
+    Sale del mart mensual sin modelo nuevo: solo separa los meses de pico del
+    resto. Los meses incompletos quedan fuera, así que el reparto se juega entre
+    los 23 meses completos y cuatro de ellos son noviembre o diciembre.
+    """
+    rows = con.sql("""
+        select
+            channel,
+            100.0 * sum(net_revenue) filter (where month(sale_month) in (11, 12))
+                / sum(net_revenue) as pico_pct,
+            count(*) filter (where month(sale_month) in (11, 12)) as meses_pico,
+            count(*) as meses,
+            avg(net_revenue) filter (where month(sale_month) in (11, 12)) as media_pico,
+            avg(net_revenue) filter (where month(sale_month) not in (11, 12)) as media_resto
+        from rpt_channel_monthly
+        where not is_partial_month
+        group by channel
+        order by pico_pct
+    """).fetchall()
+
+    canales = [r[0] for r in rows]
+    pico = [float(r[1]) for r in rows]
+    # Lo que pesarían cuatro meses si todos los meses vendieran lo mismo.
+    plano = 100.0 * rows[0][2] / rows[0][3]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="Noviembre y diciembre",
+        orientation="h",
+        y=canales,
+        x=pico,
+        marker=dict(color=INK),
+        text=[pct(v) for v in pico],
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(color="white", size=12),
+        customdata=[(float(r[4]), float(r[5]), float(r[4]) / float(r[5])) for r in rows],
+        hovertemplate=(
+            "%{y} · noviembre y diciembre: %{x:.1f}% del ingreso neto"
+            "<br>%{customdata[0]:,.0f} € al mes frente a %{customdata[1]:,.0f} €"
+            " en los demás meses (%{customdata[2]:.2f} veces más)<extra></extra>"
+        ),
+    ))
+    fig.add_trace(go.Bar(
+        name="Los otros diecinueve meses",
+        orientation="h",
+        y=canales,
+        x=[100 - v for v in pico],
+        marker=dict(color="#e5e7eb"),
+        text=[pct(100 - v) for v in pico],
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(color=INK, size=12),
+        hoverinfo="skip",
+    ))
+
+    fig.add_vline(
+        x=plano,
+        line=dict(color="#e4572e", dash="dot"),
+        annotation_text=f"{pct(plano)} si todos los meses pesaran igual",
+        annotation_position="top right",
+        annotation_font=dict(size=11, color="#e4572e"),
+    )
+
+    fig.update_layout(
+        title="Cuánto del periodo se juega en Black Friday y Navidad",
+        barmode="stack",
+        bargap=0.45,
+    )
+    fig.update_xaxes(ticksuffix="%", range=[0, 100], showgrid=False)
+    fig.update_yaxes(showgrid=False)
+    return base_layout(fig, 350, top_margin=85)
+
+
 CHARTS = {
     "escalera": chart_escalera,
     "peldanos": chart_peldanos,
     "mensual": chart_mensual,
+    "yoy": chart_yoy,
     "crecimiento": chart_crecimiento,
     "devoluciones": chart_devoluciones,
+    "estacionalidad": chart_estacionalidad,
 }
 
 
@@ -295,6 +459,12 @@ ul, ol { margin: 0 0 16px; padding-left: 22px; }
 li { margin-bottom: 8px; }
 hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
 figure.chart { margin: 28px 0; }
+/* La portada del CEO: cuatro cifras, sin gráfico. */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
+.kpi { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.kpi .value { display: block; font-size: 25px; font-weight: 650; line-height: 1.2; }
+.kpi .label { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+@media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
 footer.report {
   max-width: 860px; margin: 0 auto; padding: 24px; color: var(--muted); font-size: 14px;
 }
@@ -347,6 +517,15 @@ def render_charts(html: str, con: duckdb.DuckDBPyConnection) -> str:
     return html
 
 
+def absolute_links(html: str) -> str:
+    """Los enlaces a otros .md del repo apuntan a GitHub cuando se leen en HTML."""
+    return re.sub(
+        r'href="(?!https?:)([^"]+\.md)"',
+        lambda match: f'href="{REPO}/{match.group(1)}"',
+        html,
+    )
+
+
 def main() -> None:
     if not DATABASE.exists():
         raise SystemExit("No hay warehouse todavia. Ejecuta antes: make build")
@@ -360,7 +539,8 @@ def main() -> None:
     for section in SECTIONS:
         converter.reset()
         body = converter.convert((ROOT / section).read_text(encoding="utf-8"))
-        chapters.append(f'<section class="chapter">{render_charts(body, con)}</section>')
+        body = absolute_links(render_charts(body, con))
+        chapters.append(f'<section class="chapter">{body}</section>')
 
     cutoff, lines = con.sql("""
         select strftime(max(sale_date), '%d/%m/%Y'), count(*)

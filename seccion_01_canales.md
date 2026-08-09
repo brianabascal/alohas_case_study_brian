@@ -180,6 +180,7 @@ preguntas, no como un cajón de métricas:
 | `rpt_channel_revenue_ladder` | 1, 4, 5 | La escalera de lo cobrado al ingreso neto, y la cuota de cada canal en tres peldaños distintos. |
 | `rpt_channel_monthly` | 6, 9, 10, 14 | Serie mensual por canal con tasa de devolución, cuota del mes, media móvil y comparativa contra el año anterior. |
 | `rpt_channel_growth` | 2, 3, 7, 8 | Crecimiento por canal entre las dos ventanas anuales, cuánto del crecimiento aporta cada uno y cuánto se pierde en devoluciones. |
+| `rpt_channel_returns_trend` | 9 | La tasa de devolución de cada canal en cuatro medios años, que es como se distingue un deterioro de un tramo flojo. |
 | `rpt_category_mix` | 3 | Si la mezcla de categorías se movió, que es lo único que puede mover el precio medio. |
 
 Los modelos intermedios (`int_sale_line` e `int_dataset_window`) concentran las dos
@@ -191,7 +192,11 @@ ingresos, y los límites del dataset con sus dos ventanas anuales.
 - Un lector que solo lea la 01 sabe cuál es el canal más grande, cuál crece, a cuál
   se le quedan euros en las devoluciones, y **por qué el ranking no significa lo que
   parece**.
-- Todos los números salen de consultas guardadas en `analysis/`, con su CSV
-  ([E-02](decisiones.md)).
+- Todos los números del report salen de los marts, no de consultas sueltas: el
+  texto no calcula nada por su cuenta y `report/build_report.py` solo dibuja. Las
+  consultas de la auditoría, que sí son exploratorias, siguen en `analysis/audit/`
+  con su CSV ([E-02](decisiones.md)).
+- Los cuatro tests de `transform/tests/` pasan: la escalera cuadra con el hecho,
+  el mart mensual mantiene su grano y las cantidades son coherentes.
 - Ninguna cifra de esta sección contradice a `hallazgos_auditoria.md`; si alguna
   lo hace, se corrige el documento que esté mal, no el que resulte más cómodo.

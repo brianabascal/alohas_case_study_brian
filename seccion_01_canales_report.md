@@ -64,6 +64,22 @@ paga impuesto y devuelve cuatro veces menos que el resto. En euros, retail cobra
 1.734.595 € de ingreso neto contra 1.809.690 €, o sea 75.095 € por debajo. Un
 vuelco de 726.675 € que ocurre entero dentro de la escalera.
 
+Canal a canal, el mismo recorrido en euros:
+
+| Canal | Importe cobrado | − Impuestos | − Valor devuelto | = Ingreso neto | Conserva |
+|---|---:|---:|---:|---:|---:|
+| online | 7.687.810 € | −1.614.440 € | −1.085.049 € | 4.988.321 € | 64,9% |
+| retail | 2.541.120 € | −533.635 € | −272.890 € | 1.734.595 € | 68,3% |
+| wholesale | 1.889.540 € | 0 € | −79.850 € | 1.809.690 € | **95,8%** |
+| marketplace | 652.810 € | −137.090 € | −72.593 € | 443.127 € | 67,9% |
+
+**Wholesale conserva 96 de cada 100 € que cobra y online 65.** Los 31 puntos de
+diferencia son 21 de impuesto y 10 de devolución, y conviene no meterlos en el
+mismo saco: el impuesto lo paga el cliente y se lo lleva Hacienda, así que nunca
+fue dinero de Alohas, mientras que la devolución sí es venta que se hizo y se
+deshizo. Ninguno de los dos números dice nada sobre lo bien o mal que vende un
+canal.
+
 > **Cuidado con leer esto como que wholesale es el mejor canal.** En este dataset
 > el mayorista compra al mismo precio que la web, cosa que no pasa en el mundo
 > real, donde compra al 40–50% del precio de escaparate. Su cuota de ingreso está
@@ -107,7 +123,7 @@ dirección y explica el euro y medio que sube el ticket por unidad.
 
 ## 4. Quién crece, y si a alguno se le queda el crecimiento en las devoluciones
 
-[[chart:crecimiento]]
+[[chart:yoy]]
 
 | Canal | Ingreso neto año 1 | Año 2 | Crecimiento | % del crecimiento total |
 |---|---:|---:|---:|---:|
@@ -128,11 +144,34 @@ Lo que sí importa es de dónde salen los euros: **online pone 503.191 € de lo
 más rápido que la media, y por eso concentra el crecimiento aunque su porcentaje
 sea parecido al de los demás.
 
+[[chart:crecimiento]]
+
+El reverso, que es la otra mitad de la pregunta del brief, es **marketplace**:
+crece un 22,0%, el segundo mejor ritmo de los cuatro, y no aparece en ninguna
+conversación porque crece sobre una base de 199.586 €. Sus 43.956 € nuevos son el
+5,1% del crecimiento del negocio. Crecer rápido y ser pequeño no se contradicen, y
+es el único canal del que hoy se podría decir que crece en silencio.
+
 ### ¿Algún canal vende más y no ingresa más?
 
 Un canal puede vender más y quedarse igual si al mismo tiempo le devuelven más. Es
 lo que el brief llama *quietly leaks*, y hay que buscarlo a propósito porque no se
 ve en el gráfico de ingresos.
+
+La medida directa es poner una al lado de la otra las dos velocidades de cada
+canal: a cuánto crece lo que vende, sin impuesto, y a cuánto crece lo que termina
+ingresando. Si la segunda va por detrás, el canal vende más y no lo ingresa.
+
+| Canal | Crece la venta sin IVA | Crece el ingreso neto | Diferencia |
+|---|---:|---:|---|
+| retail | +20,66% | +19,56% | **1,10 pp se quedan en devoluciones** |
+| online | +21,76% | +22,48% | 0,72 pp a favor |
+| marketplace | +20,73% | +22,02% | 1,29 pp a favor |
+| wholesale | +17,39% | +18,86% | 1,47 pp a favor |
+
+**Solo retail tiene el signo malo**, y son 1,10 puntos. En los otros tres el
+ingreso neto crece más rápido que la venta, que es lo que pasa cuando se devuelve
+algo menos que el año anterior.
 
 Comparar solo dos años no sirve para esto, porque medio año flojo mueve el
 resultado del año entero y parece una tendencia. Partimos los dos años en cuatro
@@ -144,8 +183,7 @@ medios años y miramos si la línea sube:
 le sale mal, con 1,10 puntos más de devolución, y partido en cuatro se ve de dónde
 viene: devuelve el **13,90%, el 11,65%, el 13,85% y el 13,86%**. Tres de los cuatro
 tramos son prácticamente el mismo número, así que lo que hay no es un deterioro
-sino un tramo bajo —el que va de diciembre de 2024 a mayo de 2025— que deja el
-primer año artificialmente bueno. Wholesale hace el recorrido contrario, 3,49% →
+sino un tramo bajo —el que va de diciembre de 2024 a mayo de 2025— que hace parecer el primer año particularmente bueno. Wholesale hace el recorrido contrario, 3,49% →
 5,19% → 4,28% → 3,72%, y termina donde empezó.
 
 Aun así, antes de preocuparse por retail conviene ponerle un tamaño a la subida, y
@@ -168,10 +206,7 @@ que habrían vuelto manteniendo las tasas del año anterior, sobre 34.960 vendid
 En dinero son **8.545 € de un ingreso neto de 4,9 millones**: el 0,17%.
 
 Así que la respuesta es doble. **Ningún canal está vendiendo más y quedándose igual
-en ingreso**, y aunque la subida de retail fuese real, cuesta 12.079 € al año, el
-1,3% de lo que ingresa ese canal. Retail sigue siendo el sitio donde mirar primero
-—es el único cuyo año completo sale peor que el anterior— pero hoy no hay ahí un
-problema que resolver.
+en ingreso**, y aunque la subida de retail fuese real, cuesta 12.079 € al año, que representa el 1,3% de lo que ingresa ese canal y por tanto no mueve la aguja. 
 
 ## 5. Estacionalidad, y por qué el grano es mensual
 
@@ -182,6 +217,12 @@ halagüeño para el dataset: un canal mayorista de verdad vende por campaña y
 pre-order, meses antes de la temporada, no en Black Friday. Que wholesale tenga la
 misma curva de Navidad que la tienda física es otra señal de que aquí el canal es
 casi una etiqueta.
+
+[[chart:estacionalidad]]
+
+Puesto en perspectiva: si todos los meses vendieran lo mismo, cuatro meses de los
+23 completos pesarían el 17,4%. Los cuatro noviembres y diciembres pesan el
+23,4%, así que **un mes de campaña vende 1,45 veces lo que vende un mes normal**.
 
 Esa estacionalidad decide el grano. **Diciembre de 2025 hizo 576.713 € de ingreso
 neto y enero de 2026 hizo 342.921 €**: una caída del 40,5% que no significa
@@ -199,22 +240,47 @@ de tres meses y no punto a punto.
 
 **No son el mismo gráfico, y ninguno de los dos es la tabla de este report.**
 
-Para el **CEO**, cuatro números en una pantalla: 4,91 M€ de ingreso neto en el
-último año, un +21,2% contra el año anterior, online poniendo el 58,7% de ese
-crecimiento, y la mezcla de canales quieta. La conclusión que habilita es una sola:
-el negocio crece de forma sana y equilibrada, y la palanca está en el canal que ya
-es el más grande. Debajo, el aviso de comparabilidad, porque sin él este cuadro
-lleva a la decisión equivocada sobre wholesale.
+Para el **CEO**, cuatro números en una pantalla:
+
+<div class="kpis">
+  <div class="kpi"><span class="value">4,91 M€</span><span class="label">Ingreso neto del último año</span></div>
+  <div class="kpi"><span class="value">+21,2%</span><span class="label">Contra el año anterior</span></div>
+  <div class="kpi"><span class="value">58,7%</span><span class="label">Del crecimiento lo pone online</span></div>
+  <div class="kpi"><span class="value">0,6 pp</span><span class="label">Lo más que se mueve un canal en la mezcla</span></div>
+</div>
+
+La conclusión que habilitan es una sola: el negocio crece de forma sana y
+equilibrada, y la palanca está en el canal que ya es el más grande. Debajo, el
+aviso de comparabilidad, porque sin él este cuadro lleva a la decisión equivocada
+sobre wholesale.
 
 Para el **Head of Wholesale**, lo primero es que su canal no se compara con online.
 Poner un canal B2B de 7.393 líneas al lado de uno B2C de 30.066 no le dice nada que
-pueda usar. Lo suyo es su propio negocio: crece un 18,9%, es el único canal que
-devuelve por debajo del 5% —una ventaja operativa enorme y real—, y su cuota de
-ingreso neto es del 20,2%, cinco puntos por encima de lo que sugiere su
-facturación. Y luego la conversación incómoda, que es justo la que aporta valor:
-**en estos datos sus clientes compran al mismo precio que la web**. Si eso es un
+pueda usar. Lo suyo es su propio negocio contra el resto:
+
+| | Wholesale | Los otros tres canales |
+|---|---:|---:|
+| Ingreso neto del último año | 981.000 € | 3.927.082 € |
+| Crecimiento contra el año anterior | +18,9% | +21,7% |
+| Unidades devueltas | **3,99%** | 16,74% |
+| Peso de noviembre y diciembre | 22,6% | 23,6% |
+| Importe cobrado por unidad | 197,75 € | 198,44 € |
+| Ingreso sin IVA por unidad | 197,75 € | 156,77 € |
+
+Lo bueno es real y es suyo: **devuelve el 3,99% frente al 16,74% del resto**, que
+es una ventaja operativa enorme, y crece un 18,9% con la caja llena en noviembre y
+diciembre igual que la tienda física, cosa que en un canal B2B de verdad no
+pasaría.
+
+Y luego las dos últimas filas, que son la conversación incómoda y justo la que
+aporta valor: **wholesale cobra por unidad lo mismo que la web** —197,75 € contra
+198,44 €— y su ingreso por unidad sale 41 € más alto solo porque no lleva impuesto
+dentro. En estos datos sus clientes compran a precio de escaparate. Si eso es un
 fallo del dato, hay que arreglarlo antes de tomar ninguna decisión con este cuadro;
-si fuera real, es la conversación de pricing más importante de la compañía.
+si fuera real, es la conversación de pricing más importante de la compañía. Su
+mezcla de categorías tampoco lo diferencia: Dresses es el 18,2% de sus unidades
+contra el 17,9% del resto del negocio, y ninguna de las ocho categorías se separa
+más de seis décimas.
 
 Lo que ninguno de los dos puede pedirle a este dataset: el CEO querría margen por
 canal, que está en la sección 03, y algo de recurrencia de cliente, que no existe
@@ -287,9 +353,9 @@ cifras de las dos secciones, la diferencia es esa y no un error.
 ### Sobre la calidad del dato
 
 El dataset es sintético y tiene problemas plantados. Los once que encontramos están
-documentados en [la auditoría](../hallazgos_auditoria.md), cada uno con su ejemplo
+documentados en [la auditoría](hallazgos_auditoria.md), cada uno con su ejemplo
 real y su consulta; las decisiones que salieron de ahí están en
-[decisiones.md](../decisiones.md). Los que afectan a esta sección son los que acaban
+[decisiones.md](decisiones.md). Los que afectan a esta sección son los que acaban
 de leerse; el resto pesa sobre la sección 03.
 
 ---
