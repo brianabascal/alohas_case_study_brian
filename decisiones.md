@@ -410,7 +410,10 @@ la que tomamos: **decir en voz alta con qué convención trabajamos**.
 2. **Como máximo una devolución por línea de pedido.** El coste se cobra **una vez
    por línea**, no por prenda. Importa: hay 973 líneas que devuelven entre dos y
    cuatro prendas, y contarlas por unidad multiplicaría el coste sin ninguna razón
-   para creer que viajaron en paquetes separados.
+   para creer que viajaron en paquetes separados. La sección 02 eleva esto a regla
+   de evento ([D-22](decisiones.md)): el cliente o devuelve de una vez todas las
+   unidades que quiera de esa línea, o nunca más podrá devolver sobre ella. No hay
+   batches `0 → 1 → 2`.
 3. **La prenda no se revende** (es D-19, y va aquí porque las tres se aplican
    juntas).
 
@@ -461,9 +464,9 @@ escalera se enseña una sola vez al principio como gráfico de cascada. Eso resu
 la comparabilidad entre canales, deja la definición escrita para todo lo que viene
 después y responde a la pregunta 01 antes de que la hagan.
 
-### [D-16] Defendemos la lectura "a fecha de la venta"
+### [D-16] Lectura "a fecha de la venta" — acotada a la sección 01 (y la 03)
 
-**Estado:** DECIDIDA (2026-08-08)
+**Estado:** DECIDIDA (2026-08-08), **ACOTADA (2026-08-10)**
 
 El brief pide elegir entre calcular el ingreso neto *as-of date of sale* o *as-of
 report date*, y la frase es ambigua. Nuestra lectura: **las dos atribuyen la
@@ -477,17 +480,43 @@ devolución al mes de la venta; lo que cambia es con qué información se calcul
   enero. Estable, auditable, y casa con lo que se presentó en su momento. Y **hoy
   es imposible de reproducir**, porque la fila se sobrescribe y no queda historia.
 
-**Defendemos la segunda, y ese es el corazón de la sección 02:** la definición que
-el negocio necesita para cerrar un mes es exactamente la que el esquema actual
-hace imposible. Esa imposibilidad es la razón de negocio para snapshotear. No es
-una preferencia de ingeniería.
+**Alcance.** La sección 01 (y la 03) usan la lectura a fecha de la venta porque
+el esquema actual no tiene `returned_at` y no hay otra opción honesta para un
+ranking de canales. **No es la definición que la compañía debería defender una
+vez exista el puente de la sección 02.** Esa definición es as-of return date
+([D-22](decisiones.md)): el neto del mes como flujo de caja.
 
-**El corolario que hay que enseñar en un gráfico.** Como no hay fecha de
-devolución, no se puede atribuir la devolución al periodo en que ocurre. Los meses
-recientes siempre parecerán más sanos que los antiguos, porque sus devoluciones
-todavía no han llegado. Cualquier serie de ingreso neto tiene un sesgo al alza en
-la cola derecha, por construcción. El mismo mes visto con distintas madureces es
-el gráfico que hay que enseñar.
+El corolario que sigue siendo cierto sin fecha de devolución: los meses recientes
+parecerán más sanos que los antiguos en cualquier serie atribuida al mes de
+venta, porque sus devoluciones todavía no han llegado.
+
+### [D-22] Sección 02: as-of return date, diseño shipeable, un evento por línea
+
+**Estado:** DECIDIDA (2026-08-10)
+
+**Definición defendida.** El ingreso neto del mes se calcula **as-of return date**:
+ventas del mes (sin IVA) menos devoluciones cuyo `returned_at` cae en ese mes.
+Es la cifra de flujo de caja. *As-of report date* se descarta (se reescribe sola).
+*As-of date of sale* queda como vista secundaria de cohorte; la sección 01 la usa
+por falta de `returned_at` ([D-16](decisiones.md)), no como tesis a futuro.
+
+**Diseño, no implementación.** La sección 02 propone el esquema (DDL ideal,
+`{% snapshot %}` diario sobre `quantity_returned`, `int_return_event`) embebido
+en el report. No se materializa en `transform/snapshots/` en este repo. Los
+gráficos de madurez son ilustraciones con curva declarada
+(`report/curva_devoluciones.py`), no una medición ([DQ-08](hallazgos_auditoria.md)).
+
+**Curva.** 30–90 días tras la venta, pico alrededor de los 45. Ventana del brief;
+forma no uniforme para evitar el artefacto de llegada plana.
+
+**Un evento por order line.** Extiende D-21: una línea genera como máximo un
+evento de devolución con N unidades. Un segundo incremento en el dato es alerta
+de calidad, no un segundo evento.
+
+**PK del snapshot.** `unique_key` = hash de `(created_at, channel, sku,
+shipment_id)`, única en este dataset. Se pide PK real (`sale_order_line_id`) a
+origen. La clave staging actual, que mete `quantity_returned` en el `md5`, no
+sirve para snapshotear.
 
 ### [D-17] El eje temporal: grano, zona horaria y madurez
 
@@ -632,7 +661,8 @@ son las cosas que sé que faltan.
 | D-13 | El IVA se quita a nivel global, nunca por país | DECIDIDA |
 | D-14 | Comisiones de pago y pick&pack fuera de alcance | DECIDIDA |
 | D-15 | El titular es el ingreso neto; escalera en cascada | DECIDIDA |
-| D-16 | Se defiende la lectura "a fecha de la venta" | DECIDIDA |
+| D-16 | Lectura a fecha de la venta — acotada a la 01/03 | DECIDIDA |
+| D-22 | Sección 02: as-of return date, diseño, un evento, PK dims | DECIDIDA |
 | D-17 | Grano por audiencia, `Europe/Madrid`, corte 2026-05-29 | DECIDIDA |
 | D-18 | Escenario: wholesale al 45% del PVP, marketplace al 17,5% | DECIDIDA |
 | D-19 | La prenda devuelta no se revende | DECIDIDA |

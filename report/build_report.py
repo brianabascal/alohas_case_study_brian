@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Renderiza el report a un HTML autocontenido que se abre en el navegador.
+"""Renderiza el report a HTML autocontenido que se abre en el navegador.
 
-La narrativa vive en los `.md` de la raiz del repo y los numeros salen de los
-marts de dbt: aqui no se calcula nada de negocio, solo se dibuja. Si una cifra del
-texto no cuadra con su grafico, el que manda es el mart.
+La narrativa vive en los `.md` de la raiz del repo. La seccion 01 lee los marts
+de dbt (aqui no se calcula nada de negocio). La seccion 02 es una propuesta de
+esquema; sus graficos de madurez son ilustraciones con la curva declarada en
+`curva_devoluciones.py`.
 
 El HTML lleva plotly incrustado, asi que funciona sin conexion y se puede mandar
 por correo como un fichero suelto.
@@ -15,6 +16,7 @@ Uso (desde la raiz del repo, con los marts ya construidos):
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
@@ -23,12 +25,59 @@ import plotly.graph_objects as go
 import plotly.offline
 from plotly.subplots import make_subplots
 
+from curva_devoluciones import (
+    SKETCH_SALE_MONTH,
+    cash_monthly_series,
+    maturity_milestones,
+    sketch_sale_month_rewrite,
+    sketch_sale_month_stable_and_debits,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DATABASE = ROOT / "data" / "alohas.duckdb"
-OUTPUT = ROOT / "report" / "index.html"
+REPORT_DIR = ROOT / "report"
 
-# Al cerrar las secciones 02 y 03 se anaden aqui y el report se une solo.
-SECTIONS = ("seccion_01_canales_report.md",)
+
+@dataclass(frozen=True)
+class Document:
+    """Un HTML de salida alimentado por uno o varios .md de la raíz."""
+
+    filename: str
+    sections: tuple[str, ...]
+    title: str
+    headline: str
+    meta_suffix: str
+    footer: str
+
+
+# index.html sigue en 1 de 3 hasta fusionar; index2.html es la 02 aislada.
+DOCUMENTS = (
+    Document(
+        filename="index.html",
+        sections=("seccion_01_canales_report.md",),
+        title="ALOHAS · case study de Analytics Engineer",
+        headline="ALOHAS · cómo se mide este negocio",
+        meta_suffix="secciones publicadas: 1 de 3",
+        footer=(
+            "Generado con <code>report/build_report.py</code> a partir de los marts "
+            "de dbt. Las cifras salen de <code>rpt_*</code>; el texto no calcula "
+            "nada por su cuenta."
+        ),
+    ),
+    Document(
+        filename="index2.html",
+        sections=("seccion_02_hipotesis_report.md",),
+        title="ALOHAS · 02 Net sales y devoluciones tardías",
+        headline="ALOHAS · net sales y devoluciones que llegan tarde",
+        meta_suffix="sección 02 · borrador aislado (aún no fusionado)",
+        footer=(
+            "Generado con <code>report/build_report.py</code>. El esquema es una "
+            "propuesta; los gráficos de madurez son ilustraciones con la curva "
+            "declarada en <code>report/curva_devoluciones.py</code>, no una "
+            "medición del dataset."
+        ),
+    ),
+)
 
 # Los .md se enlazan entre si con rutas relativas para que funcionen leyendolos en
 # GitHub. En el HTML esas rutas no llevan a ninguna parte, asi que al renderizar se
@@ -395,6 +444,120 @@ def chart_estacionalidad(con: duckdb.DuckDBPyConnection) -> go.Figure:
     return base_layout(fig, 350, top_margin=85)
 
 
+ILLUSTRATION = (
+    "<br><span style='font-size:12px'>Ilustración · curva 30–90 (pico a 45); "
+    "no es una medición del dataset</span>"
+)
+
+
+def chart_curva_madurez(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Cuánto de las devoluciones ha aterrizado a N días tras la venta."""
+    del con  # la curva es asunción pura; no lee el warehouse
+    milestones = maturity_milestones()
+    xs = [f"{d} días" for d, _ in milestones]
+    ys = [100 * c for _, c in milestones]
+
+    fig = go.Figure(go.Scatter(
+        x=xs,
+        y=ys,
+        mode="lines+markers+text",
+        line=dict(color=INK, width=2.5),
+        marker=dict(size=9),
+        text=[pct(y, 0) if y >= 1 else pct(y, 1) for y in ys],
+        textposition="top center",
+        hovertemplate="%{x}: %{y:.0f}% de las devoluciones ya aterrizadas<extra></extra>",
+    ))
+    fig.update_layout(title="Curva declarada de llegada de devoluciones" + ILLUSTRATION)
+    fig.update_yaxes(ticksuffix="%", range=[0, 110], title_text="% acumulado")
+    return base_layout(fig, 360, top_margin=95)
+
+
+def chart_mismo_mes(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """La mentira (mes de venta que se reescribe) frente a la defendida (caja)."""
+    rewrite = sketch_sale_month_rewrite(con)
+    sale_in, debits = sketch_sale_month_stable_and_debits(con)
+
+    fig = make_subplots(
+        rows=1,
+        cols=2,
+        subplot_titles=(
+            "As-of report date · el mes de venta se reescribe",
+            "As-of return date · la venta no se toca",
+        ),
+        horizontal_spacing=0.08,
+        column_widths=[0.48, 0.52],
+    )
+
+    fig.add_trace(go.Scatter(
+        name="Neto del mes de venta",
+        x=[d.strftime("%d/%m/%Y") for d, _ in rewrite],
+        y=[v for _, v in rewrite],
+        mode="lines+markers",
+        line=dict(color="#e4572e", width=2.5),
+        marker=dict(size=8),
+        hovertemplate="Visto el %{x}: %{y:,.0f} €<extra></extra>",
+    ), row=1, col=1)
+
+    # Panel derecho: ingreso de ventas del mes (plano) + barras de débitos en meses posteriores.
+    labels = [SKETCH_SALE_MONTH.strftime("%m/%Y") + " ventas"] + [
+        m.strftime("%m/%Y") for m, _ in debits
+    ]
+    values = [sale_in] + [-v for _, v in debits]
+    colors = ["#1f2933"] + ["#e4572e"] * len(debits)
+    fig.add_trace(go.Bar(
+        name="Caja del mes",
+        x=labels,
+        y=values,
+        marker=dict(color=colors),
+        text=[eur(abs(v)) for v in values],
+        textposition="outside",
+        hovertemplate="%{x}: %{y:,.0f} €<extra></extra>",
+        showlegend=False,
+    ), row=1, col=2)
+
+    fig.update_layout(
+        title=(
+            f"Enero 2025 visto de dos formas"
+            f"{ILLUSTRATION}"
+        ),
+        showlegend=False,
+    )
+    fig.update_yaxes(tickformat=",.0f", ticksuffix=" €", row=1, col=1)
+    fig.update_yaxes(tickformat=",.0f", ticksuffix=" €", row=1, col=2)
+    fig.update_xaxes(tickangle=-30, row=1, col=2)
+    return base_layout(fig, 420, top_margin=120, bottom_margin=40)
+
+
+def chart_caja_mensual(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Serie de caja: ventas del mes menos devoluciones que aterrizan en el mes."""
+    series = [
+        (month, cash_net, partial)
+        for month, cash_net, partial in cash_monthly_series(con)
+        if not partial
+    ]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        name="Ingreso neto de caja",
+        x=[month for month, _, _ in series],
+        y=[cash_net for _, cash_net, _ in series],
+        mode="lines",
+        line=dict(color=INK, width=2.5),
+        hovertemplate="%{x|%m/%Y}: %{y:,.0f} € de caja neta<extra></extra>",
+    ))
+    fig.update_layout(
+        title=(
+            "Ingreso neto a fecha de devolución · flujo de caja mensual"
+            "<br><span style='font-size:12px'>Una devolución entra una vez, en el"
+            " mes en que ocurre; los meses anteriores no se reescriben</span>"
+        ),
+        showlegend=False,
+    )
+    fig.update_yaxes(tickformat=",.0f", ticksuffix=" €", rangemode="tozero")
+    fig.update_xaxes(tickformat="%m/%Y", dtick="M3")
+    return base_layout(fig, 400, top_margin=95)
+
+
 CHARTS = {
     "escalera": chart_escalera,
     "peldanos": chart_peldanos,
@@ -403,6 +566,9 @@ CHARTS = {
     "crecimiento": chart_crecimiento,
     "devoluciones": chart_devoluciones,
     "estacionalidad": chart_estacionalidad,
+    "curva_madurez": chart_curva_madurez,
+    "mismo_mes": chart_mismo_mes,
+    "caja_mensual": chart_caja_mensual,
 }
 
 
@@ -459,6 +625,12 @@ ul, ol { margin: 0 0 16px; padding-left: 22px; }
 li { margin-bottom: 8px; }
 hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
 figure.chart { margin: 28px 0; }
+pre {
+  background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.45;
+}
+code { font-size: 0.92em; }
+pre code { font-size: 13px; }
 /* La portada del CEO: cuatro cifras, sin gráfico. */
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
 .kpi { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
@@ -486,20 +658,19 @@ PAGE = """<!doctype html>
 <body>
 <header class="report">
   <div class="eyebrow">Case study · Analytics Engineer</div>
-  <h1>ALOHAS · cómo se mide este negocio</h1>
+  <h1>{headline}</h1>
   <div class="meta">{meta}</div>
 </header>
 <main>{body}</main>
 <footer class="report">
-  Generado con <code>report/build_report.py</code> a partir de los marts de dbt.
-  Las cifras salen de <code>rpt_*</code>; el texto no calcula nada por su cuenta.
+  {footer}
 </footer>
 </body>
 </html>
 """
 
 
-def render_charts(html: str, con: duckdb.DuckDBPyConnection) -> str:
+def render_charts(html: str, con: duckdb.DuckDBPyConnection, section_name: str) -> str:
     """Sustituye los marcadores [[chart:nombre]] por su figura."""
     for name, build in CHARTS.items():
         marker = f"<p>[[chart:{name}]]</p>"
@@ -513,7 +684,7 @@ def render_charts(html: str, con: duckdb.DuckDBPyConnection) -> str:
         html = html.replace(marker, f'<figure class="chart">{figure}</figure>')
 
     if "[[chart:" in html:
-        raise SystemExit(f"Hay marcadores de grafico sin definir en {SECTIONS}")
+        raise SystemExit(f"Hay marcadores de grafico sin definir en {section_name}")
     return html
 
 
@@ -526,41 +697,60 @@ def absolute_links(html: str) -> str:
     )
 
 
+def build_document(
+    doc: Document,
+    con: duckdb.DuckDBPyConnection,
+    converter: markdown.Markdown,
+    plotlyjs: str,
+    cutoff: str,
+    lines: int,
+) -> Path:
+    chapters = []
+    for section in doc.sections:
+        converter.reset()
+        body = converter.convert((ROOT / section).read_text(encoding="utf-8"))
+        body = absolute_links(render_charts(body, con, section))
+        chapters.append(f'<section class="chapter">{body}</section>')
+
+    output = REPORT_DIR / doc.filename
+    output.write_text(
+        PAGE.format(
+            title=doc.title,
+            headline=doc.headline,
+            styles=STYLES,
+            plotlyjs=plotlyjs,
+            meta=(
+                f"{lines:,} líneas de pedido".replace(",", ".")
+                + f" · datos hasta {cutoff} · {doc.meta_suffix}"
+            ),
+            body="\n".join(chapters),
+            footer=doc.footer,
+        ),
+        encoding="utf-8",
+    )
+    return output
+
+
 def main() -> None:
     if not DATABASE.exists():
         raise SystemExit("No hay warehouse todavia. Ejecuta antes: make build")
 
     con = duckdb.connect(str(DATABASE), read_only=True)
     # `toc` no dibuja indice: se usa porque pone un id en cada encabezado y eso
-    # permite enlazar a un apartado concreto del report.
-    converter = markdown.Markdown(extensions=["tables", "attr_list", "sane_lists", "toc"])
-
-    chapters = []
-    for section in SECTIONS:
-        converter.reset()
-        body = converter.convert((ROOT / section).read_text(encoding="utf-8"))
-        body = absolute_links(render_charts(body, con))
-        chapters.append(f'<section class="chapter">{body}</section>')
-
+    # permite enlazar a un apartado concreto del report. `fenced_code` para el
+    # DDL y el bloque snapshot de la sección 02.
+    converter = markdown.Markdown(
+        extensions=["tables", "attr_list", "sane_lists", "toc", "fenced_code"]
+    )
+    plotlyjs = plotly.offline.get_plotlyjs()
     cutoff, lines = con.sql("""
         select strftime(max(sale_date), '%d/%m/%Y'), count(*)
         from fct_sale_line
     """).fetchone()
 
-    OUTPUT.write_text(
-        PAGE.format(
-            title="ALOHAS · case study de Analytics Engineer",
-            styles=STYLES,
-            plotlyjs=plotly.offline.get_plotlyjs(),
-            meta=(
-                f"{lines:,} líneas de pedido".replace(",", ".")
-                + f" · datos hasta {cutoff} · secciones publicadas: {len(SECTIONS)} de 3"
-            ),
-            body="\n".join(chapters),
-        ),
-        encoding="utf-8",
-    )
-    print(f"[report] {OUTPUT.relative_to(ROOT)} ({OUTPUT.stat().st_size / 1e6:.1f} MB)")
+    for doc in DOCUMENTS:
+        output = build_document(doc, con, converter, plotlyjs, cutoff, lines)
+        print(f"[report] {output.relative_to(ROOT)} ({output.stat().st_size / 1e6:.1f} MB)")
 
 
 if __name__ == "__main__":

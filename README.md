@@ -5,16 +5,19 @@ problemas plantados dentro. Este repositorio tiene el report, el código que
 produce cada número y el rastro de las decisiones que hubo que tomar para que los
 números signifiquen algo.
 
-**Estado:** publicada la sección 01 (ventas por canal). Las secciones 02
-(devoluciones que llegan tarde) y 03 (margen de contribución) están en curso.
+**Estado:** publicada la sección 01 (ventas por canal). La sección 02
+(devoluciones que llegan tarde) está en borrador aislado en
+[`report/index2.html`](report/index2.html). La 03 (margen de contribución) está
+en curso.
 
 ## Por dónde empezar
 
-1. **El report**, que es el entregable: [`report/index.html`](report/index.html).
-   Es un fichero HTML autocontenido —lleva los gráficos dentro y funciona sin
-   conexión—, así que se abre haciendo doble clic. Para leerlo en GitHub sin
-   descargar nada, el mismo texto está en
-   [`seccion_01_canales_report.md`](seccion_01_canales_report.md).
+1. **El report**, que es el entregable: [`report/index.html`](report/index.html)
+   (sección 01) y [`report/index2.html`](report/index2.html) (sección 02, aún no
+   fusionada). Son HTML autocontenidos —llevan los gráficos dentro y funcionan
+   sin conexión—. El mismo texto está en
+   [`seccion_01_canales_report.md`](seccion_01_canales_report.md) y
+   [`seccion_02_hipotesis_report.md`](seccion_02_hipotesis_report.md).
 2. **Qué encontramos al auditar los datos**:
    [`hallazgos_auditoria.md`](hallazgos_auditoria.md). Once problemas de calidad,
    cada uno con su ejemplo real y la consulta que lo demuestra.
@@ -26,7 +29,7 @@ números signifiquen algo.
 
 | Carpeta | Qué hay |
 |---|---|
-| `report/` | `build_report.py` monta el HTML a partir de los `.md` y de los marts. El texto no calcula nada: cada cifra sale de una tabla de dbt. |
+| `report/` | `build_report.py` monta `index.html` e `index2.html` a partir de los `.md`. La sección 01 lee marts; la 02 es una propuesta de esquema, y sus gráficos de madurez son ilustraciones (`curva_devoluciones.py`), no una medición. |
 | `transform/` | El proyecto dbt. `staging/` limpia y tipa las tres tablas de origen, `intermediate/` concentra las dos reglas que gobiernan todo (conversión horaria con la escalera de ingresos, y los límites del dataset con sus dos ventanas anuales) y `marts/` tiene el hecho a grano de línea más un mart por bloque de preguntas. |
 | `analysis/audit/` | Las consultas exploratorias de la auditoría, cada una con su CSV en `out/`. Son el rastro de cómo se encontró cada problema, no código de producción. |
 | `scripts/` | `bq.py` es un runner de solo lectura contra la API REST de BigQuery; `extract.py` lo usa para bajar las tres tablas a `data/raw/`. |
@@ -34,9 +37,9 @@ números signifiquen algo.
 | `archivo/` | Material de preparación ya superado. Se guarda porque enseña el camino. |
 
 Los documentos de la raíz son el contexto vivo: la auditoría, las decisiones y
-[`seccion_01_canales.md`](seccion_01_canales.md), que es el plan de la sección 01
-escrito **antes** de la primera consulta para que el análisis no derivara hacia lo
-que resultara fácil de sacar.
+[`seccion_01_canales.md`](seccion_01_canales.md) y
+[`seccion_02_hipotesis.md`](seccion_02_hipotesis.md), planes de sección escritos
+**antes** de la prosa para que el análisis no derivara hacia lo fácil.
 
 ## Cómo reproducirlo
 
@@ -46,7 +49,7 @@ para reconstruir el report entero:
 ```bash
 make venv     # entorno virtual e instalación de requirements.txt
 make build    # dbt run + dbt test: reconstruye data/alohas.duckdb
-make report   # regenera report/index.html
+make report   # regenera report/index.html e index2.html
 ```
 
 `make extract` vuelve a bajar las tablas de BigQuery y solo funciona con las
