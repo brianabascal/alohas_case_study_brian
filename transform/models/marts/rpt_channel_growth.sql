@@ -32,26 +32,38 @@ crecimiento as (
     select
         *,
         net_revenue_y2 - net_revenue_y1 as net_revenue_growth_eur,
-        round(100.0 * (units_sold_y2 / units_sold_y1 - 1), 2) as units_growth_pct,
-        round(100.0 * (revenue_ex_tax_y2 / revenue_ex_tax_y1 - 1), 2)
+        round(
+            100.0 * (units_sold_y2 / nullif(units_sold_y1, 0) - 1), 2
+        ) as units_growth_pct,
+        round(100.0 * (revenue_ex_tax_y2 / nullif(revenue_ex_tax_y1, 0) - 1), 2)
             as revenue_ex_tax_growth_pct,
-        round(100.0 * (net_revenue_y2 / net_revenue_y1 - 1), 2) as net_revenue_growth_pct,
+        round(
+            100.0 * (net_revenue_y2 / nullif(net_revenue_y1, 0) - 1), 2
+        ) as net_revenue_growth_pct,
 
         -- Con cero descuentos y precio de catálogo fijo (DQ-06), el ingreso medio
         -- por unidad solo se puede mover porque cambie la mezcla de lo que se
         -- vende. Separarlo del volumen es lo que contesta si crecemos vendiendo
         -- más o vendiendo distinto.
-        round(revenue_ex_tax_y1 / units_sold_y1, 2) as revenue_per_unit_y1,
-        round(revenue_ex_tax_y2 / units_sold_y2, 2) as revenue_per_unit_y2,
+        round(revenue_ex_tax_y1 / nullif(units_sold_y1, 0), 2) as revenue_per_unit_y1,
+        round(revenue_ex_tax_y2 / nullif(units_sold_y2, 0), 2) as revenue_per_unit_y2,
 
         -- Dos tasas de devolución que no son la misma y no siempre se mueven en
         -- la misma dirección: una cuenta prendas y la otra cuenta euros. La de
         -- unidades es la operativa; la de valor es el peldaño de la escalera y es
         -- la que explica el ingreso neto.
-        round(100.0 * units_returned_y1 / units_sold_y1, 2) as return_rate_y1_pct,
-        round(100.0 * units_returned_y2 / units_sold_y2, 2) as return_rate_y2_pct,
-        round(100.0 * returned_revenue_y1 / revenue_ex_tax_y1, 2) as returned_value_y1_pct,
-        round(100.0 * returned_revenue_y2 / revenue_ex_tax_y2, 2) as returned_value_y2_pct
+        round(
+            100.0 * units_returned_y1 / nullif(units_sold_y1, 0), 2
+        ) as return_rate_y1_pct,
+        round(
+            100.0 * units_returned_y2 / nullif(units_sold_y2, 0), 2
+        ) as return_rate_y2_pct,
+        round(
+            100.0 * returned_revenue_y1 / nullif(revenue_ex_tax_y1, 0), 2
+        ) as returned_value_y1_pct,
+        round(
+            100.0 * returned_revenue_y2 / nullif(revenue_ex_tax_y2, 0), 2
+        ) as returned_value_y2_pct
     from por_canal
 )
 
@@ -70,7 +82,7 @@ select
 
     revenue_per_unit_y1,
     revenue_per_unit_y2,
-    round(100.0 * (revenue_per_unit_y2 / revenue_per_unit_y1 - 1), 2)
+    round(100.0 * (revenue_per_unit_y2 / nullif(revenue_per_unit_y1, 0) - 1), 2)
         as revenue_per_unit_growth_pct,
 
     revenue_ex_tax_y1,
@@ -87,7 +99,10 @@ select
     -- uno grande subiendo un 5%.
     round(
         100.0 * net_revenue_growth_eur
-        / sum(net_revenue_growth_eur) filter (where channel <> 'TODOS') over (), 2
+        / nullif(
+            sum(net_revenue_growth_eur) filter (where channel <> 'TODOS') over (), 0
+        ),
+        2
     ) as share_of_growth_pct,
 
     return_rate_y1_pct,

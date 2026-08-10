@@ -41,9 +41,13 @@ enriquecida as (
         -- es la venta menos el impuesto. El nombre engaña, así que se renombra.
         l.net_sales as revenue_ex_tax,
 
-        -- Peldaño 3: la parte del ingreso que el cliente se llevó de vuelta.
+        -- Peldaño 3: la parte del ingreso que el cliente se llevó de vuelta. El
+        -- nullif es defensivo: assert_quantities_are_coherent ya falla si alguna
+        -- línea trae quantity_sold = 0, pero el modelo no debe depender del test.
         cast(
-            round(l.net_sales * l.quantity_returned / l.quantity_sold, 2) as decimal(18, 2)
+            round(
+                l.net_sales * l.quantity_returned / nullif(l.quantity_sold, 0), 2
+            ) as decimal(18, 2)
         ) as returned_revenue
 
     from linea as l

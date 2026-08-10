@@ -25,8 +25,10 @@ with por_categoria as (
 cuotas as (
     select
         *,
-        100.0 * units_sold_y1 / sum(units_sold_y1) over () as share_of_units_y1_pct,
-        100.0 * units_sold_y2 / sum(units_sold_y2) over () as share_of_units_y2_pct
+        100.0 * units_sold_y1
+        / nullif(sum(units_sold_y1) over (), 0) as share_of_units_y1_pct,
+        100.0 * units_sold_y2
+        / nullif(sum(units_sold_y2) over (), 0) as share_of_units_y2_pct
     from por_categoria
 )
 
@@ -40,12 +42,14 @@ select
     -- Lo que hay que mirar: cuántos puntos de cuota gana o pierde cada categoría.
     round(share_of_units_y2_pct - share_of_units_y1_pct, 2) as share_change_pp,
 
-    round(revenue_ex_tax_y1 / units_sold_y1, 2) as revenue_per_unit_y1,
-    round(revenue_ex_tax_y2 / units_sold_y2, 2) as revenue_per_unit_y2,
+    round(revenue_ex_tax_y1 / nullif(units_sold_y1, 0), 2) as revenue_per_unit_y1,
+    round(revenue_ex_tax_y2 / nullif(units_sold_y2, 0), 2) as revenue_per_unit_y2,
 
     net_revenue_y1,
     net_revenue_y2,
-    round(100.0 * (net_revenue_y2 / net_revenue_y1 - 1), 2) as net_revenue_growth_pct
+    round(
+        100.0 * (net_revenue_y2 / nullif(net_revenue_y1, 0) - 1), 2
+    ) as net_revenue_growth_pct
 
 from cuotas
 order by units_sold_y2 desc

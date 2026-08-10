@@ -12,9 +12,8 @@ números signifiquen algo.
 
 1. **El report**, que es el entregable: [`report/report.html`](report/report.html)
    (HTML autocontenido —lleva los gráficos dentro y funciona sin conexión—).
-   El texto de la 03 está en
-   [`seccion_03_margen_report.md`](seccion_03_margen_report.md); el de las
-   primeras dos, en `archivo/`.
+   El texto fuente de las tres secciones está en `archivo/` (`seccion_01_canales_report.md`,
+   `seccion_02_hipotesis_report.md`, `seccion_03_margen_report.md`).
 2. **Qué encontramos al auditar los datos**:
    [`hallazgos_auditoria.md`](hallazgos_auditoria.md). Once problemas de calidad,
    cada uno con su ejemplo real y la consulta que lo demuestra.
@@ -33,8 +32,8 @@ números signifiquen algo.
 | `data/` | Los CSV de origen versionados y el warehouse local de DuckDB, que se regenera. |
 | `archivo/` | Material de preparación ya superado y planes/prosa de secciones cerradas. |
 
-Los documentos vivos de la raíz son la auditoría, las decisiones y el plan/prosa
-de la sección en curso (`seccion_03_margen.md`, `seccion_03_margen_report.md`).
+Los documentos vivos de la raíz son la auditoría y las decisiones. Los planes y
+la prosa de las tres secciones del report están en `archivo/`.
 
 ## Cómo reproducirlo
 

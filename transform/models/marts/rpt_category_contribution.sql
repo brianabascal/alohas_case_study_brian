@@ -22,15 +22,17 @@ select
     lines,
     units_sold,
     units_returned,
-    round(100.0 * units_returned / units_sold, 2) as return_rate_pct,
+    round(100.0 * units_returned / nullif(units_sold, 0), 2) as return_rate_pct,
     net_revenue,
     round(net_revenue / lines, 2) as net_revenue_per_line,
     product_cost,
     shipping_cost_allocated,
     return_shipping_cost,
     contribution_margin,
-    round(100.0 * contribution_margin / net_revenue, 2) as cm_pct,
-    round(100.0 * shipping_cost_allocated / net_revenue, 2) as shipping_pct_of_net,
+    round(100.0 * contribution_margin / nullif(net_revenue, 0), 2) as cm_pct,
+    round(
+        100.0 * shipping_cost_allocated / nullif(net_revenue, 0), 2
+    ) as shipping_pct_of_net,
     round(contribution_margin / lines, 2) as cm_per_line
 from por_categoria
 order by shipping_pct_of_net desc

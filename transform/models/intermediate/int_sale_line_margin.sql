@@ -16,21 +16,29 @@ producto as (
 
 -- D-06: pool = envíos que alguna venta referencia; divisor = todas las líneas
 -- (también las sin ficha). Los huérfanos quedan fuera.
+envios_referenciados as (
+    select distinct shipment_id
+    from {{ ref('stg_fct_sale_order_line') }}
+    where shipment_id is not null
+),
+
+pool_transporte as (
+    select sum(s.shipping_cost) as coste_pool
+    from {{ ref('stg_fct_shipment') }} as s
+    inner join envios_referenciados as r
+        on s.shipment_id = r.shipment_id
+),
+
+lineas_facturadas as (
+    select count(*)::decimal(18, 6) as n_lineas
+    from {{ ref('stg_fct_sale_order_line') }}
+),
+
 tarifa as (
     select
-        (
-            select sum(s.shipping_cost)
-            from {{ ref('stg_fct_shipment') }} as s
-            where s.shipment_id in (
-                select distinct shipment_id
-                from {{ ref('stg_fct_sale_order_line') }}
-                where shipment_id is not null
-            )
-        )
-        / (
-            select count(*)::decimal(18, 6)
-            from {{ ref('stg_fct_sale_order_line') }}
-        ) as eur_por_linea
+        pool.coste_pool / lineas.n_lineas as eur_por_linea
+    from pool_transporte as pool
+    cross join lineas_facturadas as lineas
 ),
 
 economics as (

@@ -34,7 +34,7 @@ select
     lines,
     units_sold,
     units_returned,
-    round(100.0 * units_returned / units_sold, 2) as return_rate_pct,
+    round(100.0 * units_returned / nullif(units_sold, 0), 2) as return_rate_pct,
 
     gross_charged,
     taxes,
@@ -46,20 +46,25 @@ select
     -- para que las cuotas sumen 100 y no 50.
     round(
         100.0 * gross_charged
-        / sum(gross_charged) filter (where channel <> 'TODOS') over (), 2
+        / nullif(sum(gross_charged) filter (where channel <> 'TODOS') over (), 0),
+        2
     ) as share_of_gross_pct,
     round(
         100.0 * revenue_ex_tax
-        / sum(revenue_ex_tax) filter (where channel <> 'TODOS') over (), 2
+        / nullif(sum(revenue_ex_tax) filter (where channel <> 'TODOS') over (), 0),
+        2
     ) as share_of_ex_tax_pct,
     round(
         100.0 * net_revenue
-        / sum(net_revenue) filter (where channel <> 'TODOS') over (), 2
+        / nullif(sum(net_revenue) filter (where channel <> 'TODOS') over (), 0),
+        2
     ) as share_of_net_pct,
 
     -- Los dos escalones, en porcentaje de lo que había justo encima.
-    round(100.0 * taxes / gross_charged, 2) as tax_pct_of_gross,
-    round(100.0 * returned_revenue / revenue_ex_tax, 2) as returns_pct_of_ex_tax,
+    round(100.0 * taxes / nullif(gross_charged, 0), 2) as tax_pct_of_gross,
+    round(
+        100.0 * returned_revenue / nullif(revenue_ex_tax, 0), 2
+    ) as returns_pct_of_ex_tax,
 
     lines_without_catalog,
     net_revenue_without_catalog

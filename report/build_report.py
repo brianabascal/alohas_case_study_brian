@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Renderiza el report a HTML autocontenido que se abre en el navegador.
 
-La narrativa vive en los `.md` de la raiz del repo. La seccion 01 lee los marts
+La narrativa vive en los `.md` de `archivo/`. La seccion 01 lee los marts
 de dbt (aqui no se calcula nada de negocio). La seccion 02 es una propuesta de
 esquema; sus graficos de madurez son ilustraciones con la curva declarada en
 `curva_devoluciones.py`.
@@ -40,7 +40,7 @@ REPORT_DIR = ROOT / "report"
 
 @dataclass(frozen=True)
 class Document:
-    """Un bloque HTML del report, alimentado por uno o varios .md de la raíz."""
+    """Un bloque HTML del report, alimentado por uno o varios .md del repositorio."""
 
     sections: tuple[str, ...]
     title: str
@@ -67,7 +67,7 @@ DOCUMENTS = (
         ),
     ),
     Document(
-        sections=("seccion_03_margen_report.md",),
+        sections=("archivo/seccion_03_margen_report.md",),
         title="ALOHAS · contribution margin",
         headline="ALOHAS · quién gana dinero de verdad",
         meta_suffix="sección 03 · contribution margin",

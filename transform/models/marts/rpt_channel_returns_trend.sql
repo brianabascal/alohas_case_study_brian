@@ -43,8 +43,12 @@ select
     limites.half_end,
     sum(etiquetada.quantity_sold) as units_sold,
     sum(etiquetada.quantity_returned) as units_returned,
-    round(100.0 * sum(etiquetada.quantity_returned) / sum(etiquetada.quantity_sold), 2)
-        as return_rate_pct
+    round(
+        100.0
+        * sum(etiquetada.quantity_returned)
+        / nullif(sum(etiquetada.quantity_sold), 0),
+        2
+    ) as return_rate_pct
 from etiquetada
 inner join limites using (half_number)
 group by

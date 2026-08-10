@@ -13,7 +13,22 @@ ventana as (
 )
 
 select
-    linea.*,
+    linea.sale_order_line_sk,
+    linea.channel,
+    linea.sku,
+    linea.category,
+    linea.is_catalog_product,
+    linea.created_at_utc,
+    linea.sale_date,
+    linea.sale_month,
+    linea.quantity_sold,
+    linea.quantity_returned,
+    linea.quantity_net,
+    linea.gross_charged,
+    linea.taxes,
+    linea.revenue_ex_tax,
+    linea.returned_revenue,
+    linea.net_revenue,
 
     -- Un mes incompleto se dibuja, pero no se compara (ver int_dataset_window).
     linea.sale_month in (ventana.first_partial_month, ventana.last_partial_month)

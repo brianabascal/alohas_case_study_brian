@@ -129,3 +129,5 @@ models:
         tests: [not_null]
       - name: cm_rank
         tests: [not_null]
+      - name: cm_pct_rank
+        tests: [not_null]

@@ -33,14 +33,14 @@ select
     lines_with_return,
     units_sold,
     units_returned,
-    round(100.0 * units_returned / units_sold, 2) as return_rate_pct,
+    round(100.0 * units_returned / nullif(units_sold, 0), 2) as return_rate_pct,
 
     net_revenue,
     product_cost,
     shipping_cost_allocated,
     return_shipping_cost,
     contribution_margin,
-    round(100.0 * contribution_margin / net_revenue, 2) as cm_pct,
+    round(100.0 * contribution_margin / nullif(net_revenue, 0), 2) as cm_pct,
 
     -- Lectura 2: mismo escaparate, IVA 21% en todos.
     round(
@@ -51,7 +51,7 @@ select
             - shipping_cost_allocated
             - return_shipping_cost
         )
-        / net_revenue_tax_equalized,
+        / nullif(net_revenue_tax_equalized, 0),
         2
     ) as cm_tax_equalized_pct,
 
@@ -63,7 +63,7 @@ select
             - product_cost_if_restocked
             - shipping_cost_allocated
         )
-        / net_revenue_tax_equalized,
+        / nullif(net_revenue_tax_equalized, 0),
         2
     ) as cm_no_return_effect_pct,
 

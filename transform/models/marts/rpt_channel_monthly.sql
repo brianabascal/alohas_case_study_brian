@@ -42,13 +42,16 @@ select
     lines,
     units_sold,
     units_returned,
-    round(100.0 * units_returned / units_sold, 2) as return_rate_pct,
+    round(100.0 * units_returned / nullif(units_sold, 0), 2) as return_rate_pct,
 
     gross_charged,
     revenue_ex_tax,
     net_revenue,
     round(
-        100.0 * net_revenue / sum(net_revenue) over (partition by sale_month), 2
+        100.0
+        * net_revenue
+        / nullif(sum(net_revenue) over (partition by sale_month), 0),
+        2
     ) as share_of_month_pct,
 
     -- Marketplace hace unas cien líneas al mes: a ese volumen, un punto suelto es
@@ -65,7 +68,9 @@ select
     -- nada y se deja vacía a propósito.
     case
         when is_partial_month or prev_year_is_partial then null
-        else round(100.0 * (net_revenue / net_revenue_prev_year - 1), 2)
+        else round(
+            100.0 * (net_revenue / nullif(net_revenue_prev_year, 0) - 1), 2
+        )
     end as yoy_pct
 
 from comparada
