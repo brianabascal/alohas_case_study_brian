@@ -46,7 +46,6 @@ class Document:
     title: str
     headline: str
     meta_suffix: str
-    footer: str
 
 
 DOCUMENTS = (
@@ -54,28 +53,11 @@ DOCUMENTS = (
         sections=(
             "archivo/seccion_01_canales_report.md",
             "archivo/seccion_02_hipotesis_report.md",
+            "archivo/seccion_03_margen_report.md",
         ),
         title="ALOHAS · case study de Analytics Engineer",
-        headline="ALOHAS · cómo se mide este negocio",
-        meta_suffix="secciones 01 y 02",
-        footer=(
-            "Generado con <code>report/build_report.py</code>. La sección 01 lee "
-            "marts <code>rpt_*</code>; la 02 es una propuesta de esquema y sus "
-            "gráficos de madurez son ilustraciones "
-            "(<code>report/curva_devoluciones.py</code>), no una medición del "
-            "dataset."
-        ),
-    ),
-    Document(
-        sections=("archivo/seccion_03_margen_report.md",),
-        title="ALOHAS · contribution margin",
-        headline="ALOHAS · quién gana dinero de verdad",
-        meta_suffix="sección 03 · contribution margin",
-        footer=(
-            "Generado con <code>report/build_report.py</code>. "
-            "Marts <code>rpt_*_contribution</code> y seed "
-            "<code>channel_economics</code>."
-        ),
+        headline="ALOHAS",
+        meta_suffix="secciones 01, 02 y 03",
     ),
 )
 
@@ -563,7 +545,7 @@ def chart_caja_mensual(con: duckdb.DuckDBPyConnection) -> go.Figure:
 CM_LAYERS = (
     ("Coste de producto", 2, "#64748b", "white"),
     ("Transporte imputado", 3, "#cbd5e1", INK),
-    ("Coste de devolución", 4, "#e4572e", "white"),
+    ("Logística de devolución", 4, "#e4572e", "white"),
     ("Contribución", 5, "#111827", "white"),
 )
 
@@ -609,10 +591,14 @@ def chart_cm_stack(con: duckdb.DuckDBPyConnection) -> go.Figure:
         fig.add_annotation(
             x=channel,
             y=float(row[1]),
-            text=f"{eur(row[1])}<br><b>CM {pct(row[6])}</b>",
+            text=(
+                f"{eur(row[1])}<br><b>CM {pct(row[6])}</b>"
+                f"<br><span style='color:#e4572e'>"
+                f"Log. dev. {eur(row[4])}</span>"
+            ),
             showarrow=False,
-            yshift=22,
-            font=dict(size=12),
+            yshift=30,
+            font=dict(size=11),
         )
 
     fig.update_layout(
@@ -629,9 +615,16 @@ def chart_cm_stack(con: duckdb.DuckDBPyConnection) -> go.Figure:
     )
     fig.update_yaxes(
         tickformat=",.0f", ticksuffix=" €", rangemode="tozero",
-        range=[0, max(float(r[1]) for r in rows) * 1.16],
+        range=[0, max(float(r[1]) for r in rows) * 1.28],
     )
-    return base_layout(fig, 460, top_margin=105)
+    fig = base_layout(fig, 470, top_margin=80, bottom_margin=85)
+    # La leyenda va debajo: son cuatro etiquetas largas que en pantallas
+    # estrechas saltan a dos filas, y ancladas arriba se comian el subtitulo.
+    fig.update_layout(legend=dict(
+        orientation="h", yanchor="top", y=-0.10, x=0,
+        traceorder="normal", font=dict(size=12),
+    ))
+    return fig
 
 
 def chart_cm_canales(con: duckdb.DuckDBPyConnection) -> go.Figure:
@@ -954,11 +947,9 @@ pre code { font-size: 13px; }
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0; }
 .kpi { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
 .kpi .value { display: block; font-size: 25px; font-weight: 650; line-height: 1.2; }
-.kpi .label { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+.kpi .label { display: block; font-size: 13px; color: #374151; font-weight: 600; margin-top: 6px; line-height: 1.35; }
+.kpi .sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
 @media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
-footer.report {
-  max-width: 860px; margin: 0 auto; padding: 24px; color: var(--muted); font-size: 14px;
-}
 @media print {
   body { background: white; }
   section.chapter { border: none; padding: 0; }
@@ -981,9 +972,6 @@ PAGE = """<!doctype html>
   <div class="meta">{meta}</div>
 </header>
 <main>{body}</main>
-<footer class="report">
-  {footer}
-</footer>
 </body>
 </html>
 """
@@ -1041,7 +1029,6 @@ def build_document(
             + f" · datos hasta {cutoff} · {doc.meta_suffix}"
         ),
         body="\n".join(chapters),
-        footer=doc.footer,
     )
 
 
