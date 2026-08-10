@@ -10,10 +10,9 @@ números signifiquen algo.
 
 ## Por dónde empezar
 
-1. **El report**, que es el entregable: [`report/report.html`](report/report.html)
-   (HTML autocontenido —lleva los gráficos dentro y funciona sin conexión—).
-   El texto fuente de las tres secciones está en `archivo/` (`seccion_01_canales_report.md`,
-   `seccion_02_hipotesis_report.md`, `seccion_03_margen_report.md`).
+1. **El report**, que es el entregable:
+   [`report/report.html`](report/report.html). Es un HTML autocontenido —lleva los
+   gráficos dentro y funciona sin conexión—. Se lee entero por sí solo.
 2. **Qué encontramos al auditar los datos**:
    [`hallazgos_auditoria.md`](hallazgos_auditoria.md). Once problemas de calidad,
    cada uno con su ejemplo real y la consulta que lo demuestra.
@@ -21,29 +20,40 @@ números signifiquen algo.
    no daba una respuesta, ahí está escrito qué asumimos en su lugar y qué
    consecuencia tiene.
 
+El report cita esos dos documentos por su código (DQ-xx y D-xx): ahí está el
+detalle de cada hallazgo y de cada decisión que el informe solo resume.
+
+## Cómo abrir el report
+
+```bash
+git clone git@github.com:brianabascal/alohas_case_study_brian.git
+cd alohas_case_study_brian
+xdg-open report/report.html   # macOS: open · Windows: start
+```
+
+No hace falta instalar nada: los gráficos y la hoja de estilo van dentro del
+fichero. Hay que abrirlo en el navegador —en la vista de GitHub no se renderiza—.
+
 ## Cómo está montado el repo
 
 | Carpeta | Qué hay |
 |---|---|
-| `report/` | `build_report.py` monta `report.html` (secciones 01, 02 y 03). La 01 y la 03 leen marts; la 02 es una propuesta de esquema con ilustraciones (`curva_devoluciones.py`). |
+| `report/` | `report.html`, el informe completo (secciones 01, 02 y 03) en un solo fichero. La 01 y la 03 salen de los marts; la 02 es una propuesta de esquema y sus gráficos de madurez son ilustraciones con curva declarada, no una medición. |
 | `transform/` | El proyecto dbt. `staging/` limpia y tipa las tres tablas de origen, `intermediate/` concentra las reglas de ingreso y de margen, `marts/` tiene el hecho a grano de línea más un mart por bloque de preguntas, y `seeds/` guarda los parámetros del escenario de canal. |
 | `analysis/audit/` | Las consultas exploratorias de la auditoría, cada una con su CSV en `out/`. Son el rastro de cómo se encontró cada problema, no código de producción. |
 | `scripts/` | `bq.py` es un runner de solo lectura contra la API REST de BigQuery; `extract.py` lo usa para bajar las tres tablas a `data/raw/`. |
 | `data/` | Los CSV de origen versionados y el warehouse local de DuckDB, que se regenera. |
-| `archivo/` | Material de preparación ya superado y planes/prosa de secciones cerradas. |
 
-Los documentos vivos de la raíz son la auditoría y las decisiones. Los planes y
-la prosa de las tres secciones del report están en `archivo/`.
+Los documentos vivos de la raíz son la auditoría y las decisiones.
 
 ## Cómo reproducirlo
 
 Los CSV de origen están versionados, así que **no hace falta acceso a BigQuery**
-para reconstruir el report entero:
+para levantar el warehouse y comprobar de dónde sale cada número del report:
 
 ```bash
 make venv     # entorno virtual e instalación de requirements.txt
 make build    # dbt seed + dbt run + dbt test: reconstruye data/alohas.duckdb
-make report   # regenera report/report.html
 ```
 
 `make extract` vuelve a bajar las tablas de BigQuery y solo funciona con las

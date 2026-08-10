@@ -503,8 +503,8 @@ por falta de `returned_at` ([D-16](decisiones.md)), no como tesis a futuro.
 **Diseño, no implementación.** La sección 02 propone el esquema (DDL ideal,
 `{% snapshot %}` diario sobre `quantity_returned`, `int_return_event`) embebido
 en el report. No se materializa en `transform/snapshots/` en este repo. Los
-gráficos de madurez son ilustraciones con curva declarada
-(`report/curva_devoluciones.py`), no una medición ([DQ-08](hallazgos_auditoria.md)).
+gráficos de madurez son ilustraciones con curva declarada, no una medición
+([DQ-08](hallazgos_auditoria.md)).
 
 **Curva.** 30–90 días tras la venta, pico alrededor de los 45. Ventana del brief;
 forma no uniforme para evitar el artefacto de llegada plana.

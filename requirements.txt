@@ -2,7 +2,3 @@
 dbt-core>=1.8,<1.11
 dbt-duckdb>=1.8,<1.11
 duckdb>=1.0
-
-# Report: markdown -> HTML autocontenido con graficos
-markdown>=3.5
-plotly>=5.20

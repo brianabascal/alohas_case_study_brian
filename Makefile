@@ -3,7 +3,7 @@
 PYTHON ?= $(CURDIR)/.venv/bin/python
 DBT ?= $(CURDIR)/.venv/bin/dbt
 
-.PHONY: venv extract debug run test build report seed
+.PHONY: venv extract debug run test build seed
 
 venv:
 	pyenv exec python -m venv .venv
@@ -26,7 +26,3 @@ test:
 	cd transform && $(DBT) test
 
 build: seed run test
-
-# Deja los HTML en report/, listos para abrir en el navegador.
-report:
-	$(PYTHON) report/build_report.py
