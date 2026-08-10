@@ -778,64 +778,101 @@ def chart_cm_categorias(con: duckdb.DuckDBPyConnection) -> go.Figure:
 
 
 def chart_cm_productos(con: duckdb.DuckDBPyConnection) -> go.Figure:
-    """Rank de ingreso vs rank de CM: lo que parece sano y se cae."""
+    """Ingreso contra margen, SKU a SKU: facturar mucho no es dejar dinero.
+
+    Tres magnitudes en un plano: el eje X dice cuánto factura el SKU, el Y
+    cuánto deja en porcentaje y el área del punto cuánto deja en euros. La
+    linea del margen del negocio parte el catalogo en dos y el cuadrante de
+    abajo a la derecha es el que pide el brief: mucho ingreso, poco margen.
+    """
     rows = con.sql("""
-        select product_name, category, revenue_rank, cm_rank,
-               net_revenue, contribution_margin, cm_pct
+        select sku, product_name, category, net_revenue, contribution_margin,
+               cm_pct, revenue_rank, cm_rank
         from rpt_product_contribution
-        where revenue_rank <= 30
-        order by revenue_rank
+        order by net_revenue
     """).fetchall()
+    (baseline,) = con.sql("""
+        select cm_pct from rpt_channel_contribution where channel = 'TODOS'
+    """).fetchone()
+    baseline = float(baseline)
+
+    mayor_cm = max(float(r[4]) for r in rows)
 
     fig = go.Figure()
-    # Diagonal: mismo puesto en ingreso y en CM.
-    fig.add_trace(go.Scatter(
-        x=[1, 30], y=[1, 30],
-        mode="lines",
-        line=dict(color="#dfe3e8", width=1, dash="dot"),
-        hoverinfo="skip",
-        showlegend=False,
-    ))
-    fig.add_trace(go.Scatter(
-        x=[float(r[2]) for r in rows],
-        y=[float(r[3]) for r in rows],
-        mode="markers",
-        showlegend=False,
-        marker=dict(
-            size=[max(8, min(22, float(r[4]) / 8000)) for r in rows],
-            # Rojo = margen bajo, verde = margen alto, pero con la barra puesta
-            # del reves (55% abajo, 20% arriba) para que el rojo quede arriba.
-            # Plotly no sabe invertir el eje de una colorbar, asi que se colorea
-            # sobre el CM% negado y se reetiquetan los ticks en positivo.
-            color=[-float(r[6]) for r in rows],
-            colorscale="RdYlGn",
-            reversescale=True,
-            cmin=-55,
-            cmax=-20,
-            colorbar=dict(
-                title="CM %",
-                tickvals=list(range(-55, -19, 5)),
-                ticktext=[f"{-v}%" for v in range(-55, -19, 5)],
-            ),
-            line=dict(width=0.5, color="#1f2933"),
-        ),
-        text=[r[0] for r in rows],
-        customdata=[[r[1], eur(r[4]), eur(r[5]), pct(r[6])] for r in rows],
-        hovertemplate=(
-            "%{text}<br>%{customdata[0]}"
-            "<br>rank ingreso %{x} · rank CM %{y}"
-            "<br>ingreso %{customdata[1]} · CM %{customdata[2]} (%{customdata[3]})"
-            "<extra></extra>"
-        ),
-    ))
-    fig.update_layout(
-        title="Top 30 en ingreso: por encima de la diagonal, el margen empeora el puesto",
-        xaxis_title="Rank por ingreso neto (1 = más ingreso)",
-        yaxis_title="Rank por contribución (1 = más CM €)",
+    grupos = (
+        ("Por debajo del margen del negocio", "#e4572e", lambda cm: cm < baseline),
+        ("Por encima", "#1f2933", lambda cm: cm >= baseline),
     )
-    fig.update_xaxes(range=[0.5, 31], dtick=5)
-    fig.update_yaxes(range=[0.5, 70], dtick=10)
-    return base_layout(fig, 480, top_margin=60)
+    for name, color, keep in grupos:
+        grupo = [r for r in rows if keep(float(r[5]))]
+        fig.add_trace(go.Scatter(
+            name=name,
+            x=[float(r[3]) for r in grupo],
+            y=[float(r[5]) for r in grupo],
+            mode="markers",
+            marker=dict(
+                # Area proporcional a la contribucion: sin la raiz, los SKUs
+                # grandes tapan media nube.
+                size=[6 + (float(r[4]) / mayor_cm) ** 0.5 * 16 for r in grupo],
+                color=color,
+                opacity=0.75,
+                line=dict(width=0.5, color="white"),
+            ),
+            text=[r[1] for r in grupo],
+            customdata=[
+                [r[2], eur(r[4]), r[6], r[7]] for r in grupo
+            ],
+            hovertemplate=(
+                "%{text}<br>%{customdata[0]}"
+                "<br>ingreso neto %{x:,.0f} € · CM %{y:.1f}% (%{customdata[1]})"
+                "<br>puesto %{customdata[2]} en ingreso · %{customdata[3]} en"
+                " contribución<extra></extra>"
+            ),
+        ))
+
+    fig.add_hline(
+        y=baseline,
+        line=dict(color="#9aa5b1", dash="dot"),
+        annotation_text=f"margen del negocio {pct(baseline)}",
+        annotation_position="top left",
+        annotation_font=dict(size=11, color="#6b7280"),
+        # La nube de puntos llega hasta la linea; sin fondo la nota no se lee.
+        annotation_bgcolor="rgba(255,255,255,0.85)",
+    )
+
+    # Los dos SKUs que la prosa nombra, senalados para que se puedan buscar.
+    for sku, etiqueta, shift_y in (
+        ("SKU-05840", "SKU-05840<br>6.º en ingreso, 36.º en CM", -34),
+        ("SKU-01813", "SKU-01813<br>1.º en ingreso", 30),
+    ):
+        row = next(r for r in rows if r[0] == sku)
+        fig.add_annotation(
+            x=float(row[3]),
+            y=float(row[5]),
+            text=etiqueta,
+            showarrow=True,
+            arrowhead=0,
+            arrowcolor="#9aa5b1",
+            arrowwidth=1,
+            ax=-70,
+            ay=shift_y,
+            font=dict(size=11, color="#6b7280"),
+            align="right",
+        )
+
+    fig.update_layout(
+        title=(
+            "Cada punto es un SKU: facturar mucho no es dejar dinero"
+            "<br><span style='font-size:12px'>Abajo a la derecha, mucho ingreso"
+            " con poco margen. El tamaño del punto es la contribución en"
+            " euros</span>"
+        ),
+        xaxis_title="Ingreso neto del SKU",
+        yaxis_title="Margen de contribución",
+    )
+    fig.update_xaxes(tickformat=",.0f", ticksuffix=" €", rangemode="tozero")
+    fig.update_yaxes(ticksuffix="%", range=[0, 60])
+    return base_layout(fig, 500, top_margin=105)
 
 
 CHARTS = {

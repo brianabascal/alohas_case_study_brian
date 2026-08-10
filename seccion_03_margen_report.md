@@ -185,18 +185,25 @@ Tres lecturas del mismo gráfico:
 ## 6. Por producto: sano en revenue, enfermo en CM
 
 Outerwear domina la contribución en euros: de los ocho SKUs con más CM, ocho son
-abrigos. El contraste que pide el brief aparece al cruzar el rank de ingreso con
-el de margen.
+abrigos. Pero el ingreso de un SKU no dice si deja dinero. En el gráfico, cada
+punto es uno de los 200 productos del catálogo: cuánto factura en el eje
+horizontal, qué margen deja en el vertical y cuánta contribución aporta en el
+tamaño. La línea es el 36,8% del negocio, y **109 de los 200 SKUs quedan por
+debajo**.
 
 [[chart:cm_productos]]
+
+El cuadrante que pide el brief es el de abajo a la derecha: puntos grandes en
+ingreso que caen por debajo de la línea. Cruzando el rank de ingreso con el de
+margen se ven con nombre y apellidos.
 
 **Quién lidera en ingreso y se cae en CM:**
 
 | SKU | Producto | Ingreso neto | CM % | Rank ingreso | Rank CM | Caída |
 |---|---|---:|---:|---:|---:|---:|
-| SKU-05840 | MediumBlue Ago Outerwear 5840 | 115.547 € | 22,7% | 6 | 36 | −30 |
+| SKU-04081 | LightSkyBlue Equal Bag 4081 | 83.540 € | 22,4% | 23 | 63 | **−40** |
 | SKU-04284 | DarkOliveGreen Several Bag 4284 | 93.188 € | 22,7% | 16 | 55 | −39 |
-| SKU-04081 | LightSkyBlue Equal Bag 4081 | 83.540 € | 22,4% | 23 | 63 | −40 |
+| SKU-05840 | MediumBlue Ago Outerwear 5840 | 115.547 € | 22,7% | 6 | 36 | −30 |
 | SKU-05498 | BlueViolet Raw Bag 5498 | 91.796 € | 25,6% | 18 | 45 | −27 |
 
 SKU-05840 es el ejemplo limpio: sexto en ingreso del catálogo, trigésimo sexto
@@ -205,15 +212,23 @@ en contribución. En un chart de revenue parece un caballo ganador; aquí deja
 
 **Quién no grita en ingreso y sí en margen:**
 
-| SKU | Producto | Ingreso neto | CM % | Rank ingreso | Rank CM |
-|---|---|---:|---:|---:|---:|
-| SKU-05944 | CornflowerBlue Similar Shoe 5944 | 82.180 € | **53,2%** | 26 | 9 |
-| SKU-07829 | NavajoWhite All Outerwear 7829 | 85.502 € | **50,5%** | 21 | 10 |
-| SKU-03014 | LightSeaGreen Effective Outerwear 3014 | 115.682 € | **50,4%** | 5 | 2 |
+| SKU | Producto | Ingreso neto | CM % | Rank ingreso | Contribución | Rank CM |
+|---|---|---:|---:|---:|---:|---:|
+| SKU-05944 | CornflowerBlue Similar Shoe 5944 | 82.180 € | **53,2%** | 26 | **43.733 €** | 9 |
+| SKU-07829 | NavajoWhite All Outerwear 7829 | 85.502 € | **50,5%** | 21 | **43.210 €** | 10 |
+| SKU-07221 | LightGreen Successful Outerwear 7221 | 67.309 € | **52,2%** | 41 | 35.130 € | 19 |
+| SKU-05090 | NavajoWhite Common Bag 5090 | 49.986 € | **54,8%** | 66 | 27.401 € | 32 |
+
+SKU-05090 es el caso extremo: el **mejor margen del catálogo** (54,8%) con el
+puesto 66 en ingreso. Ninguno de estos cuatro abre un ranking de revenue y entre
+los cuatro dejan 149.475 € de contribución.
 
 Y el líder de ingreso del catálogo, SKU-01813 (*Khaki Other Outerwear 1813*,
 135.922 €), baja del puesto 1 al 6 en contribución: sigue sano, pero ya no es el
-primero cuando se abre el coste.
+primero cuando se abre el coste. El que aguanta en los dos rankings es SKU-03014
+(*LightSeaGreen Effective Outerwear 3014*): quinto en ingreso con 115.682 € y
+segundo en contribución con un 50,4% de margen. Ese sí es un caballo ganador
+mire donde mire.
 
 ---
 
