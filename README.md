@@ -5,17 +5,19 @@ problemas plantados dentro. Este repositorio tiene el report, el código que
 produce cada número y el rastro de las decisiones que hubo que tomar para que los
 números signifiquen algo.
 
-**Estado:** publicadas las secciones 01 (ventas por canal) y 02 (devoluciones
-que llegan tarde) en [`report/report_v1.html`](report/report_v1.html). La 03
-(margen de contribución) está en curso.
+**Estado:** publicadas las secciones 01 y 02 en
+[`report/report_v1.html`](report/report_v1.html). La 03 (margen de contribución)
+está en [`report/index_03.html`](report/index_03.html).
 
 ## Por dónde empezar
 
-1. **El report**, que es el entregable:
-   [`report/report_v1.html`](report/report_v1.html). Es un HTML autocontenido
-   —lleva los gráficos dentro y funciona sin conexión—. El mismo texto está en
-   [`seccion_01_canales_report.md`](seccion_01_canales_report.md) y
-   [`seccion_02_hipotesis_report.md`](seccion_02_hipotesis_report.md).
+1. **Los reports**, que son el entregable:
+   - Secciones 01 y 02: [`report/report_v1.html`](report/report_v1.html)
+   - Sección 03: [`report/index_03.html`](report/index_03.html)
+   Son HTML autocontenidos —llevan los gráficos dentro y funcionan sin
+   conexión—. El texto de la 03 está en
+   [`seccion_03_margen_report.md`](seccion_03_margen_report.md); el de las
+   primeras dos, en `archivo/`.
 2. **Qué encontramos al auditar los datos**:
    [`hallazgos_auditoria.md`](hallazgos_auditoria.md). Once problemas de calidad,
    cada uno con su ejemplo real y la consulta que lo demuestra.
@@ -27,17 +29,15 @@ que llegan tarde) en [`report/report_v1.html`](report/report_v1.html). La 03
 
 | Carpeta | Qué hay |
 |---|---|
-| `report/` | `build_report.py` monta `report_v1.html` a partir de los `.md`. La sección 01 lee marts; la 02 es una propuesta de esquema, y sus gráficos de madurez son ilustraciones (`curva_devoluciones.py`), no una medición. |
-| `transform/` | El proyecto dbt. `staging/` limpia y tipa las tres tablas de origen, `intermediate/` concentra las dos reglas que gobiernan todo (conversión horaria con la escalera de ingresos, y los límites del dataset con sus dos ventanas anuales) y `marts/` tiene el hecho a grano de línea más un mart por bloque de preguntas. |
+| `report/` | `build_report.py` monta `report_v1.html` (01+02) e `index_03.html` (03). La 01 y la 03 leen marts; la 02 es una propuesta de esquema con ilustraciones (`curva_devoluciones.py`). |
+| `transform/` | El proyecto dbt. `staging/` limpia y tipa las tres tablas de origen, `intermediate/` concentra las reglas de ingreso y de margen, `marts/` tiene el hecho a grano de línea más un mart por bloque de preguntas, y `seeds/` guarda los parámetros del escenario de canal. |
 | `analysis/audit/` | Las consultas exploratorias de la auditoría, cada una con su CSV en `out/`. Son el rastro de cómo se encontró cada problema, no código de producción. |
 | `scripts/` | `bq.py` es un runner de solo lectura contra la API REST de BigQuery; `extract.py` lo usa para bajar las tres tablas a `data/raw/`. |
 | `data/` | Los CSV de origen versionados y el warehouse local de DuckDB, que se regenera. |
-| `archivo/` | Material de preparación ya superado. Se guarda porque enseña el camino. |
+| `archivo/` | Material de preparación ya superado y planes/prosa de secciones cerradas. |
 
-Los documentos de la raíz son el contexto vivo: la auditoría, las decisiones y
-[`seccion_01_canales.md`](seccion_01_canales.md) y
-[`seccion_02_hipotesis.md`](seccion_02_hipotesis.md), planes de sección escritos
-**antes** de la prosa para que el análisis no derivara hacia lo fácil.
+Los documentos vivos de la raíz son la auditoría, las decisiones y el plan/prosa
+de la sección en curso (`seccion_03_margen.md`, `seccion_03_margen_report.md`).
 
 ## Cómo reproducirlo
 
@@ -46,8 +46,8 @@ para reconstruir el report entero:
 
 ```bash
 make venv     # entorno virtual e instalación de requirements.txt
-make build    # dbt run + dbt test: reconstruye data/alohas.duckdb
-make report   # regenera report/report_v1.html
+make build    # dbt seed + dbt run + dbt test: reconstruye data/alohas.duckdb
+make report   # regenera report/report_v1.html y report/index_03.html
 ```
 
 `make extract` vuelve a bajar las tablas de BigQuery y solo funciona con las
@@ -57,10 +57,11 @@ credencial en el repositorio.
 
 El warehouse es DuckDB en un fichero local: es lo que permite que cualquiera
 levante el proyecto entero sin una cuenta en ningún sitio. Los tests son de dos
-tipos: los de esquema, en los `_*.yml` de cada capa, y cuatro singulares en
+tipos: los de esquema, en los `_*.yml` de cada capa, y singulares en
 `transform/tests/` que comprueban lo que de verdad puede romperse —que la escalera
-de ingresos cuadra con el hecho, que el mart mensual mantiene su grano y que las
-cantidades vendidas y devueltas son coherentes—.
+de ingresos cuadra con el hecho, que el CM de canal cuadra con las líneas
+costadas, que la tarifa de transporte es plana y que las cantidades son
+coherentes—.
 
 ## Los supuestos que hay que conocer para leer los números
 

@@ -54,8 +54,8 @@ DOCUMENTS = (
     Document(
         filename="report_v1.html",
         sections=(
-            "seccion_01_canales_report.md",
-            "seccion_02_hipotesis_report.md",
+            "archivo/seccion_01_canales_report.md",
+            "archivo/seccion_02_hipotesis_report.md",
         ),
         title="ALOHAS · case study de Analytics Engineer",
         headline="ALOHAS · cómo se mide este negocio",
@@ -66,6 +66,18 @@ DOCUMENTS = (
             "gráficos de madurez son ilustraciones "
             "(<code>report/curva_devoluciones.py</code>), no una medición del "
             "dataset."
+        ),
+    ),
+    Document(
+        filename="index_03.html",
+        sections=("seccion_03_margen_report.md",),
+        title="ALOHAS · contribution margin",
+        headline="ALOHAS · quién gana dinero de verdad",
+        meta_suffix="sección 03 · contribution margin",
+        footer=(
+            "Generado con <code>report/build_report.py</code>. "
+            "Marts <code>rpt_*_contribution</code> y seed "
+            "<code>channel_economics</code>."
         ),
     ),
 )
@@ -549,6 +561,283 @@ def chart_caja_mensual(con: duckdb.DuckDBPyConnection) -> go.Figure:
     return base_layout(fig, 400, top_margin=95)
 
 
+# Los cuatro tramos en que se parte un euro de ingreso neto, con el indice de
+# columna que ocupan en los marts de contribucion y el color de su etiqueta.
+CM_LAYERS = (
+    ("Coste de producto", 2, "#64748b", "white"),
+    ("Transporte imputado", 3, "#cbd5e1", INK),
+    ("Coste de devolución", 4, "#e4572e", "white"),
+    ("Contribución", 5, "#111827", "white"),
+)
+
+
+def chart_cm_stack(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Los eslabones que van del ingreso neto a la contribución, canal a canal.
+
+    La altura de cada barra es el ingreso neto: las cuatro secciones son el
+    reparto exacto de ese euro. Solo llevan etiqueta dentro las dos grandes: la
+    devolucion es tan fina (1.433 € sobre 1,78 M en wholesale) que su texto solo
+    cabria pisando al vecino.
+    """
+    rows = con.sql("""
+        select channel, net_revenue, product_cost, shipping_cost_allocated,
+               return_shipping_cost, contribution_margin, cm_pct
+        from rpt_channel_contribution
+        where channel <> 'TODOS'
+        order by net_revenue desc
+    """).fetchall()
+
+    channels = [r[0] for r in rows]
+    fig = go.Figure()
+    labelled = {"Coste de producto", "Contribución"}
+    for name, idx, color, text_color in CM_LAYERS:
+        share = [100.0 * float(r[idx]) / float(r[1]) for r in rows]
+        fig.add_trace(go.Bar(
+            name=name,
+            x=channels,
+            y=[float(r[idx]) for r in rows],
+            marker_color=color,
+            text=[eur(r[idx]) if name in labelled else "" for r in rows],
+            textposition="inside",
+            insidetextanchor="middle",
+            textfont=dict(color=text_color, size=12),
+            customdata=share,
+            hovertemplate=(
+                "%{x} · " + name
+                + ": %{y:,.0f} € (%{customdata:.1f}% del ingreso neto)<extra></extra>"
+            ),
+        ))
+
+    for channel, row in zip(channels, rows):
+        fig.add_annotation(
+            x=channel,
+            y=float(row[1]),
+            text=f"{eur(row[1])}<br><b>CM {pct(row[6])}</b>",
+            showarrow=False,
+            yshift=22,
+            font=dict(size=12),
+        )
+
+    fig.update_layout(
+        barmode="stack",
+        bargap=0.45,
+        # Sin esto plotly encoge la etiqueta hasta hacerla ilegible en marketplace;
+        # mejor que desaparezca y quede el hover.
+        uniformtext=dict(minsize=10, mode="hide"),
+        title=(
+            "De ingreso neto a contribución: los eslabones del coste, canal a canal"
+            "<br><span style='font-size:12px'>Cada barra es el ingreso neto del canal"
+            " repartido en sus cuatro tramos</span>"
+        ),
+    )
+    fig.update_yaxes(
+        tickformat=",.0f", ticksuffix=" €", rangemode="tozero",
+        range=[0, max(float(r[1]) for r in rows) * 1.16],
+    )
+    return base_layout(fig, 460, top_margin=105)
+
+
+def chart_cm_canales(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """CM% del dato original frente al escenario realista D-18."""
+    rows = con.sql("""
+        select channel, cm_pct, cm_scenario_pct
+        from rpt_channel_contribution
+        where channel <> 'TODOS'
+        order by cm_pct desc
+    """).fetchall()
+
+    channels = [r[0] for r in rows]
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="CM con datos originales",
+        x=channels,
+        y=[float(r[1]) for r in rows],
+        marker_color=[COLORS[c] for c in channels],
+        opacity=0.9,
+        text=[pct(r[1]) for r in rows],
+        textposition="outside",
+        textfont=dict(size=11),
+        hovertemplate="%{x}: %{y:.1f}%<extra>datos originales</extra>",
+    ))
+    fig.add_trace(go.Bar(
+        name="CM con escenario realista",
+        x=channels,
+        y=[float(r[2]) for r in rows],
+        marker_color=[COLORS[c] for c in channels],
+        opacity=0.45,
+        # Wholesale se va a negativo con el escenario: signo tipografico, no guion.
+        text=[pct(r[2]).replace("-", "−") for r in rows],
+        textposition="outside",
+        textfont=dict(size=11),
+        hovertemplate="%{x}: %{y:.1f}%<extra>escenario realista</extra>",
+    ))
+    fig.update_layout(
+        barmode="group",
+        bargap=0.35,
+        title=(
+            "Margen % por canal: datos originales frente al escenario realista"
+            "<br><span style='font-size:12px'>Escenario: wholesale factura al 45%"
+            " del PVP y marketplace paga un 17,5% de comisión</span>"
+        ),
+        yaxis_title="CM %",
+    )
+    fig.update_yaxes(ticksuffix="%", zeroline=True, zerolinecolor="#dfe3e8")
+    return base_layout(fig, 440, top_margin=105)
+
+
+def chart_cm_diagnostico(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Dos lecturas del margen: dato original y los cuatro canales al 21%."""
+    rows = con.sql("""
+        select channel, cm_pct, cm_tax_equalized_pct
+        from rpt_channel_contribution
+        where channel <> 'TODOS'
+        order by cm_pct desc
+    """).fetchall()
+
+    channels = [r[0] for r in rows]
+    fig = go.Figure()
+    series = [
+        ("Datos originales", 1, 1.0),
+        ("IVA igualado al 21%", 2, 0.45),
+    ]
+    for name, idx, opacity in series:
+        fig.add_trace(go.Bar(
+            name=name,
+            x=channels,
+            y=[float(r[idx]) for r in rows],
+            marker_color=[COLORS[c] for c in channels],
+            opacity=opacity,
+            text=[pct(r[idx]) for r in rows],
+            textposition="outside",
+            textfont=dict(size=11),
+            hovertemplate="%{x} · " + name + ": %{y:.1f}%<extra></extra>",
+        ))
+    fig.update_layout(
+        barmode="group",
+        bargap=0.35,
+        title="Igualando el impuesto, la ventaja de wholesale se reduce a la mitad",
+        yaxis_title="CM %",
+    )
+    fig.update_yaxes(ticksuffix="%", range=[0, 62])
+    return base_layout(fig, 420, top_margin=60)
+
+
+def chart_cm_categorias(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """El mismo euro de ingreso repartido dentro de cada categoría.
+
+    Se pasan los euros del mart y plotly normaliza cada columna al 100%
+    (`barnorm`): asi el reparto no se calcula aqui. El orden es el CM%: de
+    peor a mejor margen, para que la seccion negra crezca de izquierda a
+    derecha.
+    """
+    rows = con.sql("""
+        select category, net_revenue, product_cost, shipping_cost_allocated,
+               return_shipping_cost, contribution_margin,
+               shipping_pct_of_net, cm_pct
+        from rpt_category_contribution
+        order by cm_pct
+    """).fetchall()
+
+    categories = [r[0] for r in rows]
+    fig = go.Figure()
+    labelled = {"Coste de producto", "Transporte imputado", "Contribución"}
+    for name, idx, color, text_color in CM_LAYERS:
+        share = [100.0 * float(r[idx]) / float(r[1]) for r in rows]
+        fig.add_trace(go.Bar(
+            name=name,
+            x=categories,
+            y=[float(r[idx]) for r in rows],
+            marker_color=color,
+            text=[pct(s) if name in labelled else "" for s in share],
+            textposition="inside",
+            insidetextanchor="middle",
+            textfont=dict(color=text_color, size=11),
+            customdata=[(float(r[idx]), s) for r, s in zip(rows, share)],
+            hovertemplate=(
+                "%{x} · " + name
+                + ": %{customdata[1]:.2f}% del ingreso neto"
+                + " (%{customdata[0]:,.0f} €)<extra></extra>"
+            ),
+        ))
+
+    fig.update_layout(
+        barmode="stack",
+        barnorm="percent",
+        bargap=0.35,
+        uniformtext=dict(minsize=10, mode="hide"),
+        title=(
+            "Margen de contribución por categoría: de Accessories (31,7%) a"
+            " Shoes (40,2%)"
+            "<br><span style='font-size:12px'>Cada columna es el 100% del ingreso"
+            " neto; la sección negra es el margen. Ordenadas de peor a mejor"
+            " CM%</span>"
+        ),
+    )
+    fig.update_yaxes(ticksuffix="%", range=[0, 100])
+    return base_layout(fig, 460, top_margin=105)
+
+
+def chart_cm_productos(con: duckdb.DuckDBPyConnection) -> go.Figure:
+    """Rank de ingreso vs rank de CM: lo que parece sano y se cae."""
+    rows = con.sql("""
+        select product_name, category, revenue_rank, cm_rank,
+               net_revenue, contribution_margin, cm_pct
+        from rpt_product_contribution
+        where revenue_rank <= 30
+        order by revenue_rank
+    """).fetchall()
+
+    fig = go.Figure()
+    # Diagonal: mismo puesto en ingreso y en CM.
+    fig.add_trace(go.Scatter(
+        x=[1, 30], y=[1, 30],
+        mode="lines",
+        line=dict(color="#dfe3e8", width=1, dash="dot"),
+        hoverinfo="skip",
+        showlegend=False,
+    ))
+    fig.add_trace(go.Scatter(
+        x=[float(r[2]) for r in rows],
+        y=[float(r[3]) for r in rows],
+        mode="markers",
+        showlegend=False,
+        marker=dict(
+            size=[max(8, min(22, float(r[4]) / 8000)) for r in rows],
+            # Rojo = margen bajo, verde = margen alto, pero con la barra puesta
+            # del reves (55% abajo, 20% arriba) para que el rojo quede arriba.
+            # Plotly no sabe invertir el eje de una colorbar, asi que se colorea
+            # sobre el CM% negado y se reetiquetan los ticks en positivo.
+            color=[-float(r[6]) for r in rows],
+            colorscale="RdYlGn",
+            reversescale=True,
+            cmin=-55,
+            cmax=-20,
+            colorbar=dict(
+                title="CM %",
+                tickvals=list(range(-55, -19, 5)),
+                ticktext=[f"{-v}%" for v in range(-55, -19, 5)],
+            ),
+            line=dict(width=0.5, color="#1f2933"),
+        ),
+        text=[r[0] for r in rows],
+        customdata=[[r[1], eur(r[4]), eur(r[5]), pct(r[6])] for r in rows],
+        hovertemplate=(
+            "%{text}<br>%{customdata[0]}"
+            "<br>rank ingreso %{x} · rank CM %{y}"
+            "<br>ingreso %{customdata[1]} · CM %{customdata[2]} (%{customdata[3]})"
+            "<extra></extra>"
+        ),
+    ))
+    fig.update_layout(
+        title="Top 30 en ingreso: por encima de la diagonal, el margen empeora el puesto",
+        xaxis_title="Rank por ingreso neto (1 = más ingreso)",
+        yaxis_title="Rank por contribución (1 = más CM €)",
+    )
+    fig.update_xaxes(range=[0.5, 31], dtick=5)
+    fig.update_yaxes(range=[0.5, 70], dtick=10)
+    return base_layout(fig, 480, top_margin=60)
+
+
 CHARTS = {
     "escalera": chart_escalera,
     "peldanos": chart_peldanos,
@@ -560,6 +849,11 @@ CHARTS = {
     "curva_madurez": chart_curva_madurez,
     "mismo_mes": chart_mismo_mes,
     "caja_mensual": chart_caja_mensual,
+    "cm_stack": chart_cm_stack,
+    "cm_canales": chart_cm_canales,
+    "cm_diagnostico": chart_cm_diagnostico,
+    "cm_categorias": chart_cm_categorias,
+    "cm_productos": chart_cm_productos,
 }
 
 

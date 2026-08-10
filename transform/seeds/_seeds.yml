@@ -1,0 +1,21 @@
+version: 2
+
+seeds:
+  - name: channel_economics
+    description: >
+      Parámetros visibles del escenario de margen (D-18) y del multiplicador del
+      coste de devolución (D-21). Una sola fila. No hardcodea la tarifa de
+      transporte: esa se calcula en int_sale_line_margin a partir del pool de
+      envíos referenciados (D-06).
+    columns:
+      - name: wholesale_price_realization
+        description: Fracción del PVP a la que factura wholesale en el escenario.
+        tests: [not_null]
+      - name: marketplace_fee
+        description: Comisión de marketplace sobre lo cobrado al cliente final.
+        tests: [not_null]
+      - name: return_shipping_multiplier
+        description: >
+          Multiplicador sobre shipping_cost_allocated para el coste de traer la
+          prenda. 1.0 = la devolución cuesta lo mismo que el envío (D-21).
+        tests: [not_null]

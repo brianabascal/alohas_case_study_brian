@@ -33,3 +33,23 @@ models:
       - name: last_sale_date
         description: Fecha de corte del dataset, derivada del dato y no escrita a mano.
         tests: [not_null, unique]
+
+  - name: int_sale_line_margin
+    description: >
+      Grano: una línea de pedido con ficha de producto (D-09). Añade el stack de
+      costes de la sección 03 (COGS, shipping_cost_allocated, coste de devolución)
+      y las medidas de escenario (D-18) sin pisar la capa reportada.
+    columns:
+      - name: sale_order_line_sk
+        tests: [not_null, unique]
+      - name: shipping_cost_allocated
+        description: >
+          Tarifa plana del pool de envíos referenciados (D-06). Misma en todas
+          las filas; no es fct_shipment.shipping_cost.
+        tests: [not_null]
+      - name: contribution_margin
+        description: Ingreso neto − COGS − transporte imputado − coste de devolución.
+        tests: [not_null]
+      - name: contribution_margin_scenario
+        description: CM tras aplicar wholesale 45% y fee de marketplace 17,5% (D-18).
+        tests: [not_null]

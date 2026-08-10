@@ -89,3 +89,43 @@ models:
     columns:
       - name: category
         tests: [not_null, unique]
+
+  - name: rpt_channel_contribution
+    description: >
+      Sección 03. Una fila por canal más TODOS: stack de costes, CM observado,
+      lecturas diagnósticas (IVA igualado / sin efecto de devolución) y CM del
+      escenario D-18.
+    columns:
+      - name: channel
+        tests: [not_null, unique]
+      - name: contribution_margin
+        tests: [not_null]
+      - name: cm_pct
+        tests: [not_null]
+      - name: cm_scenario_pct
+        tests: [not_null]
+
+  - name: rpt_category_contribution
+    description: >
+      Sección 03. Margen y peso del transporte plano por categoría del catálogo.
+    columns:
+      - name: category
+        tests: [not_null, unique]
+      - name: shipping_pct_of_net
+        tests: [not_null]
+      - name: cm_pct
+        tests: [not_null]
+
+  - name: rpt_product_contribution
+    description: >
+      Sección 03. Margen por SKU con ranks de ingreso y de CM para el contraste
+      revenue-sano / CM-roto.
+    columns:
+      - name: sku
+        tests: [not_null, unique]
+      - name: contribution_margin
+        tests: [not_null]
+      - name: revenue_rank
+        tests: [not_null]
+      - name: cm_rank
+        tests: [not_null]
