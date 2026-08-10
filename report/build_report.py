@@ -7,7 +7,7 @@ esquema; sus graficos de madurez son ilustraciones con la curva declarada en
 `curva_devoluciones.py`.
 
 El HTML lleva plotly incrustado, asi que funciona sin conexion y se puede mandar
-por correo como un fichero suelto.
+por correo como un fichero suelto. `make report` genera `report/report.html`.
 
 Uso (desde la raiz del repo, con los marts ya construidos):
     python3 report/build_report.py
@@ -40,9 +40,8 @@ REPORT_DIR = ROOT / "report"
 
 @dataclass(frozen=True)
 class Document:
-    """Un HTML de salida alimentado por uno o varios .md de la raíz."""
+    """Un bloque HTML del report, alimentado por uno o varios .md de la raíz."""
 
-    filename: str
     sections: tuple[str, ...]
     title: str
     headline: str
@@ -52,14 +51,13 @@ class Document:
 
 DOCUMENTS = (
     Document(
-        filename="report_v1.html",
         sections=(
             "archivo/seccion_01_canales_report.md",
             "archivo/seccion_02_hipotesis_report.md",
         ),
         title="ALOHAS · case study de Analytics Engineer",
         headline="ALOHAS · cómo se mide este negocio",
-        meta_suffix="secciones publicadas: 2 de 3",
+        meta_suffix="secciones 01 y 02",
         footer=(
             "Generado con <code>report/build_report.py</code>. La sección 01 lee "
             "marts <code>rpt_*</code>; la 02 es una propuesta de esquema y sus "
@@ -69,7 +67,6 @@ DOCUMENTS = (
         ),
     ),
     Document(
-        filename="index_03.html",
         sections=("seccion_03_margen_report.md",),
         title="ALOHAS · contribution margin",
         headline="ALOHAS · quién gana dinero de verdad",
@@ -1026,7 +1023,7 @@ def build_document(
     plotlyjs: str,
     cutoff: str,
     lines: int,
-) -> Path:
+) -> str:
     chapters = []
     for section in doc.sections:
         converter.reset()
@@ -1034,23 +1031,18 @@ def build_document(
         body = absolute_links(render_charts(body, con, section))
         chapters.append(f'<section class="chapter">{body}</section>')
 
-    output = REPORT_DIR / doc.filename
-    output.write_text(
-        PAGE.format(
-            title=doc.title,
-            headline=doc.headline,
-            styles=STYLES,
-            plotlyjs=plotlyjs,
-            meta=(
-                f"{lines:,} líneas de pedido".replace(",", ".")
-                + f" · datos hasta {cutoff} · {doc.meta_suffix}"
-            ),
-            body="\n".join(chapters),
-            footer=doc.footer,
+    return PAGE.format(
+        title=doc.title,
+        headline=doc.headline,
+        styles=STYLES,
+        plotlyjs=plotlyjs,
+        meta=(
+            f"{lines:,} líneas de pedido".replace(",", ".")
+            + f" · datos hasta {cutoff} · {doc.meta_suffix}"
         ),
-        encoding="utf-8",
+        body="\n".join(chapters),
+        footer=doc.footer,
     )
-    return output
 
 
 def main() -> None:
@@ -1070,9 +1062,21 @@ def main() -> None:
         from fct_sale_line
     """).fetchone()
 
-    for doc in DOCUMENTS:
-        output = build_document(doc, con, converter, plotlyjs, cutoff, lines)
-        print(f"[report] {output.relative_to(ROOT)} ({output.stat().st_size / 1e6:.1f} MB)")
+    parts = [
+        build_document(doc, con, converter, plotlyjs, cutoff, lines)
+        for doc in DOCUMENTS
+    ]
+    output = write_report(parts)
+    print(f"[report] {output.relative_to(ROOT)} ({output.stat().st_size / 1e6:.1f} MB)")
+
+
+def write_report(parts: tuple[str, ...]) -> Path:
+    """Concatena bloques HTML y escribe un solo fichero."""
+    output = REPORT_DIR / "report.html"
+    with output.open("wb") as out:
+        for html in parts:
+            out.write(html.encode("utf-8"))
+    return output
 
 
 if __name__ == "__main__":

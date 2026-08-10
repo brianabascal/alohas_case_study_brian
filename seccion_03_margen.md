@@ -9,9 +9,8 @@ contexto permanente sigue siendo [`decisiones.md`](decisiones.md) y
 [`hallazgos_auditoria.md`](hallazgos_auditoria.md).
 
 **Estado:** el texto está en
-[`seccion_03_margen_report.md`](seccion_03_margen_report.md) y el HTML aislado se
-genera con `make report` en [`report/index_03.html`](report/index_03.html).
-[`report/report_v1.html`](report/report_v1.html) (secciones 01 y 02) no se toca.
+[`seccion_03_margen_report.md`](seccion_03_margen_report.md). `make report`
+genera [`report/report.html`](report/report.html) (secciones 01, 02 y 03).
 
 La pregunta del brief, literal: *"Each unit sold has costs attached to it. The
 cost of the product itself (`dim_product.cost`). The cost of getting it to the
@@ -96,10 +95,11 @@ empatan no aporta nada que la sección 01 no dijera ya, y confunde el diagnósti
 del margen. La columna `cm_no_return_effect_pct` sigue en el mart como salida de
 auditoría; simplemente no se dibuja.
 
-### El HTML de esta sección es aislado
+### HTML del report
 
-Se genera en `report/index_03.html`. No se fusiona con `report/report_v1.html`
-(secciones 01 y 02), para no romper el entregable ya publicado.
+`make report` genera un solo fichero, [`report/report.html`](report/report.html):
+dos bloques HTML autocontenidos concatenados (01+02, luego 03), cada uno con su
+propia cabecera y pie.
 
 ---
 
@@ -151,7 +151,8 @@ Se genera en `report/index_03.html`. No se fusiona con `report/report_v1.html`
   efecto de devolución” ni un panel de sensibilidad.
 - **Comisiones de pago y pick&pack** ([D-14](decisiones.md)).
 - **Serie mensual de CM** como KPI.
-- **Fusionar `index_03.html` dentro de `report_v1.html`**.
+- **Un solo documento HTML recompuesto** (la unión es concatenación de bloques, no
+  una plantilla única).
 
 ---
 
@@ -178,8 +179,8 @@ base del mart de margen.
   escenario realista D-18 le da la vuelta a wholesale.
 - Todos los números del report salen de los marts y de la seed; `build_report.py`
   solo dibuja.
-- `report/index_03.html` contiene solo la sección 03; `report/report_v1.html` no
-  cambia de secciones.
+- `report/report.html` contiene las tres secciones; los números salen de los
+  marts y de la seed.
 - Los tests de dbt pasan, incluido que el CM de `TODOS` cuadra con la suma de
   líneas costadas y que `shipping_cost_allocated` es constante.
 - Ninguna cifra contradice `hallazgos_auditoria.md` ni el audit #29 (salvo
