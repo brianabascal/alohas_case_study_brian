@@ -69,37 +69,6 @@ de ingresos cuadra con el hecho, que el CM de canal cuadra con las líneas
 costadas, que la tarifa de transporte es plana y que las cantidades son
 coherentes—.
 
-## Los supuestos que hay que conocer para leer los números
-
-Están todos razonados en [`decisiones.md`](decisiones.md); estos son los que
-cambian lo que se ve en el report.
-
-- **El titular es el ingreso neto**: importe cobrado menos impuestos menos el valor
-  de lo devuelto. El campo `net_sales` del dataset **no** es neto de devoluciones,
-  solo neto de impuesto, y usarlo para comparar canales pone a wholesale —que
-  factura sin impuesto— a competir con tres canales que lo llevan dentro.
-- **La devolución se atribuye al mes de la venta**, no al mes en que se devolvió.
-- **Grano mensual contra el mismo mes del año anterior**, fechas convertidas a
-  `Europe/Madrid` antes de agrupar, y crecimiento medido sobre dos ventanas de 365
-  días en vez de años naturales, para que los dos periodos midan lo mismo.
-- **El impuesto se quita a nivel global, nunca por país.** El dataset aplica un 21%
-  clavado en los ocho países, incluidos Estados Unidos y México.
-- **El transporte no se puede atribuir a la venta, solo repartir**: es una factura
-  común de 4,13 € por línea. El vínculo entre cada venta y su envío está puesto al
-  azar, y por eso tampoco hay ningún corte por país.
-- **La devolución cuesta lo mismo que el envío**, se carga una vez por línea con
-  devolución y la prenda devuelta no se revende.
-- **Todo margen que salga de aquí es un techo.** No hay ni un descuento en dos años
-  con dos Black Friday dentro, y el mayorista compra al mismo precio que la web.
-- **Las ventas de artículos que no están en el catálogo cuentan como ingreso pero
-  no entran en el margen**, porque no tienen coste. Son el 1,6%, y por eso las
-  cifras de la sección 01 y las de la 03 no cuadrarán entre sí.
-
-Y un aviso que es en sí mismo un hallazgo: **el canal, en este dataset, es casi una
-etiqueta**. Los cuatro venden los mismos artículos, en la misma proporción, al
-mismo precio y con el mismo coste. Lo único que los separa de verdad es quién paga
-impuesto y quién devuelve, y el report se publica diciéndolo.
-
 ## Lo que haría con más tiempo
 
 - **Publicar el filo en vez de un escenario.** Hoy la sección 03 corrige el precio
