@@ -1,0 +1,15 @@
+eje,valor,huerfanos,pct_huerfanos,con_venta,pct_con_venta
+metodo,economy,596,10.35,2353,9.71
+metodo,express,1145,19.89,4875,20.11
+metodo,next_day,586,10.18,2489,10.27
+metodo,pickup,292,5.07,1213,5.0
+metodo,standard,3139,54.52,13312,54.91
+pais,DE,827,14.36,3484,14.37
+pais,ES,1592,27.65,6745,27.82
+pais,FR,914,15.87,3821,15.76
+pais,IT,599,10.4,2480,10.23
+pais,MX,256,4.45,986,4.07
+pais,PT,290,5.04,1236,5.1
+pais,UK,589,10.23,2349,9.69
+pais,US,691,12.0,3141,12.96
+unidades,vendidas / devueltas,9514,,64391,

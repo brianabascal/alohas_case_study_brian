@@ -13,9 +13,6 @@ data/**/*.duckdb.wal
 *.duckdb.wal
 *.parquet
 
-# Salidas de auditoría exploratoria (no el raw del pipeline)
-analysis/audit/out/
-
 # Entornos y build
 .venv/
 venv/

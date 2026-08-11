@@ -1,0 +1,15 @@
+tabla,metrica,valor
+dim_product,skus,200
+fct_shipment,filas,30000
+fct_sale_order_line,ultima_venta,2026-05-29 23:13:23+00
+fct_sale_order_line,primera_venta,2024-05-29 00:39:37+00
+fct_shipment,paises,8
+fct_shipment,shipment_ids,30000
+fct_shipment,metodos,5
+dim_product,filas,200
+fct_sale_order_line,filas,50000
+dim_product,categorias,8
+fct_sale_order_line,canales,4
+fct_sale_order_line,skus,922
+fct_sale_order_line,shipment_ids,24741
+fct_sale_order_line,filas_distintas,50000

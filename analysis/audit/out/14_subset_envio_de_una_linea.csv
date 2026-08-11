@@ -1,0 +1,4 @@
+grupo,lineas,pct_online,pct_retail,pct_wholesale,pct_marketplace,uds_por_linea,tasa_devolucion_pct,gross_por_linea,gross_total,coste_envio_medio,desde,hasta
+,49500,60.1,20.0,14.8,5.1,1.288,14.8,255.54,12649160,8.52,2024-05-29,2026-05-29
+resto,39941,60.2,19.9,14.8,5.1,1.29,14.83,255.83,10218150,8.53,2024-05-29,2026-05-29
+subset_1_linea,9559,59.8,20.1,14.8,5.3,1.282,14.64,254.32,2431010,8.46,2024-05-29,2026-05-29

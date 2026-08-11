@@ -1,0 +1,4 @@
+problema,filas,pct_filas,pct_gross_sale,skus_afectados
+envios sin ninguna linea de venta,5758,,,5758
+lineas sin producto en dim_product,750,1.5,1.59,722
+lineas sin envio en fct_shipment,500,1.0,0.96,499

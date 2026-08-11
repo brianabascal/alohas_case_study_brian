@@ -1,0 +1,6 @@
+channel,lineas,skus,primera,ultima,gross_sale,unidades_por_linea,longitudes_distintas,prefijos
+TOTAL,750,722,2024-05-30,2026-05-29,203240,1.26,1,SKU
+online,435,426,2024-06-03,2026-05-28,119470,1.27,1,SKU
+retail,166,165,2024-05-30,2026-05-12,43020,1.26,1,SKU
+wholesale,112,111,2024-05-30,2026-05-29,30760,1.21,1,SKU
+marketplace,37,37,2024-07-06,2026-05-28,9990,1.32,1,SKU

@@ -1,0 +1,6 @@
+shipment_id,lineas,primera_linea,ultima_linea,dias_de_separacion,canales_mezclados
+SHP-0010294,7,2024-05-29,2026-05-28,729,"online,retail,wholesale"
+SHP-0005451,4,2024-06-01,2026-05-27,725,online
+SHP-0006686,2,2024-05-29,2026-05-23,724,"online,retail"
+SHP-0018087,3,2024-05-30,2026-05-24,724,"online,retail,wholesale"
+SHP-0003573,5,2024-05-31,2026-05-24,723,"online,retail,wholesale"

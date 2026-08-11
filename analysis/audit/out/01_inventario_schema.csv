@@ -1,0 +1,19 @@
+table_name,table_type,ordinal_position,column_name,data_type,is_nullable,is_partitioning_column
+dim_product,BASE TABLE,1,sku,STRING,NO,NO
+dim_product,BASE TABLE,2,name,STRING,NO,NO
+dim_product,BASE TABLE,3,category,STRING,NO,NO
+dim_product,BASE TABLE,4,base_price,NUMERIC,NO,NO
+dim_product,BASE TABLE,5,cost,NUMERIC,NO,NO
+fct_sale_order_line,BASE TABLE,1,channel,STRING,NO,NO
+fct_sale_order_line,BASE TABLE,2,sku,STRING,NO,NO
+fct_sale_order_line,BASE TABLE,3,shipment_id,STRING,NO,NO
+fct_sale_order_line,BASE TABLE,4,quantity_sold,INT64,NO,NO
+fct_sale_order_line,BASE TABLE,5,quantity_returned,INT64,NO,NO
+fct_sale_order_line,BASE TABLE,6,gross_sale,NUMERIC,NO,NO
+fct_sale_order_line,BASE TABLE,7,taxes,NUMERIC,NO,NO
+fct_sale_order_line,BASE TABLE,8,net_sales,NUMERIC,NO,NO
+fct_sale_order_line,BASE TABLE,9,created_at,TIMESTAMP,NO,YES
+fct_shipment,BASE TABLE,1,shipment_id,STRING,NO,NO
+fct_shipment,BASE TABLE,2,shipping_method,STRING,NO,NO
+fct_shipment,BASE TABLE,3,shipping_cost,NUMERIC,NO,NO
+fct_shipment,BASE TABLE,4,country,STRING,NO,NO

@@ -1,0 +1,9 @@
+category,skus,skus_coste_mayor_que_precio,skus_valor_no_positivo,margen_bruto_min_pct,margen_bruto_medio_pct,margen_bruto_max_pct,precio_min,precio_max
+Dresses,36,0,0,45.1,57.5,67.5,90,280
+Outerwear,29,0,0,45.3,57.4,67.5,200,550
+Bottoms,26,0,0,46.9,58,68.7,60,220
+Bags,25,0,0,45,55.7,69.5,100,400
+Shoes,22,0,0,47.2,58.9,69.4,120,350
+Swimwear,22,0,0,45.2,55.9,67.8,60,180
+Accessories,21,0,0,46.2,56.6,67.3,30,120
+Tops,19,0,0,46.5,57.9,68.7,50,150

@@ -1,0 +1,18 @@
+hallazgo,identificador,detalle
+DQ-02 venta con envio inexistente,SHP-9814827,online · SKU-01065 · 2024-05-29 · 560.00 EUR · el envio no esta en fct_shipment
+DQ-02 venta con envio inexistente,SHP-9345722,online · SKU-04135 · 2024-05-31 · 280.00 EUR · el envio no esta en fct_shipment
+DQ-03 envio huerfano,SHP-0010840,next_day a ES · 24.97 EUR · ninguna linea de venta lo referencia
+DQ-03 envio huerfano,SHP-0019851,next_day a ES · 24.90 EUR · ninguna linea de venta lo referencia
+DQ-05 IVA del 21% con destino MX,SHP-0026566,online · SKU-03014 · 2200.00 EUR de venta y 462.00 EUR de impuesto = 21.00%
+DQ-05 IVA del 21% con destino US,SHP-0017975,online · SKU-04869 · 2200.00 EUR de venta y 462.00 EUR de impuesto = 21.00%
+DQ-09 paquete standard con 1 linea(s),SHP-0000001,5.26 EUR de porte · 1 unidades dentro
+DQ-09 paquete standard con 8 linea(s),SHP-0002927,6.61 EUR de porte · 8 unidades dentro
+DQ-10 el mismo articulo en marketplace,SKU-05840,MediumBlue Ago Outerwear 5840 · Outerwear · 450.00 EUR por unidad
+DQ-10 el mismo articulo en online,SKU-05840,MediumBlue Ago Outerwear 5840 · Outerwear · 450.00 EUR por unidad
+DQ-10 el mismo articulo en retail,SKU-05840,MediumBlue Ago Outerwear 5840 · Outerwear · 450.00 EUR por unidad
+DQ-10 el mismo articulo en wholesale,SKU-05840,MediumBlue Ago Outerwear 5840 · Outerwear · 450.00 EUR por unidad
+DQ-11 porte medio next_day a ES,820 envios,19.76 EUR de media · cruzar el Atlantico cuesta lo mismo que cruzar Barcelona
+DQ-11 porte medio next_day a US,394 envios,19.99 EUR de media · cruzar el Atlantico cuesta lo mismo que cruzar Barcelona
+DQ-11 recogida en tienda fuera de Europa,254 envios,"pickup con destino MX,US, para una marca que opera desde Barcelona"
+REFERENCIA coste total de devoluciones,D-21,8256 lineas con devolucion x 4.1268 EUR = 34070.61 EUR (9514 unidades devueltas en total)
+REFERENCIA tarifa media de transporte,D-06,206338.50 EUR de pool referenciado / 50000 lineas = 4.1268 EUR por linea

@@ -1,0 +1,6 @@
+concepto,unidades,coste
+a. pool total en fct_shipment,30000,255078.42
+b. pool referenciado por alguna venta,24242,206338.5
+c. pool huerfano (DQ-03),5758,48739.92
+d. expediciones minimas (shipment x dia),49445,421224.86
+e. cota alta: una expedicion por linea,49500,421703.85

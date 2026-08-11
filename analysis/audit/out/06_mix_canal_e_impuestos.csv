@@ -1,0 +1,5 @@
+channel,filas,pct_filas,unidades,unidades_devueltas,pct_devolucion,gross_sale,tipo_efectivo_pct,filas_net_sales_incoherente,filas_devuelve_mas_de_lo_vendido,filas_cantidad_no_positiva
+online,30066,60.13,38684,6923,17.9,7687810,21,0,0,0
+retail,9985,19.97,12852,1718,13.37,2541120,21,0,0,0
+wholesale,7393,14.79,9555,397,4.15,1889540,0,0,0,0
+marketplace,2556,5.11,3300,476,14.42,652810,21,0,0,0

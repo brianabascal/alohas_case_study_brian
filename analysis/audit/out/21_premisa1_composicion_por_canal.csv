@@ -1,0 +1,6 @@
+canal,lineas,skus_distintos,uds_por_linea,pvp_por_linea,ee_pvp_por_linea,cogs_por_linea,ee_cogs_por_linea,pvp_medio_articulo,cogs_medio_articulo,cogs_sobre_pvp_pct,tipo_impositivo_pct,tasa_devolucion_pct
+TODOS,49250,200,1.2882,255.19,1.0,108.46,0.43,198.3,84.29,42.5,17.89,14.79
+online,29631,200,1.2868,255.42,1.29,108.45,0.55,198.89,84.48,42.46,21,17.9
+retail,9819,200,1.2876,254.41,2.22,108.21,0.96,197.53,84.01,42.53,21,13.39
+wholesale,7281,200,1.2936,255.29,2.59,108.77,1.11,197.19,83.93,42.61,0,4.17
+marketplace,2519,200,1.2906,255.19,4.55,108.61,1.93,197.67,84.09,42.56,21,14.46

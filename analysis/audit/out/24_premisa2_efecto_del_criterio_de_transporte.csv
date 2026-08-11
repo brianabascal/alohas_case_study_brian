@@ -1,0 +1,13 @@
+eje,clave,lineas,neto_por_linea,lineas_por_envio,pct_envio_exclusivo,tarifa_media_por_linea,transporte_1x,transporte_completo,pct_ingreso_1x,pct_ingreso_completo,distancia_entre_cotas
+canal,online,29631,201.78,2.648,20.0,8.433,121922,249881,2.04,4.18,2.14
+canal,retail,9819,200.99,2.616,20.2,8.447,40727,82938,2.06,4.2,2.14
+canal,wholesale,7281,255.29,2.626,20.2,8.455,30131,61558,1.62,3.31,1.69
+canal,marketplace,2519,201.6,2.627,20.6,8.378,10481,21104,2.06,4.16,2.09
+categoria,Dresses,8866,202.23,2.643,20.1,8.437,36480,74799,2.03,4.17,2.14
+categoria,Outerwear,7097,429.53,2.65,20.2,8.405,29294,59652,0.96,1.96,1
+categoria,Bottoms,6348,137.16,2.639,20.1,8.359,25983,53065,2.98,6.09,3.11
+categoria,Bags,6144,282.06,2.645,19.9,8.546,25632,52505,1.48,3.03,1.55
+categoria,Shoes,5438,244.66,2.63,19.8,8.539,22735,46434,1.71,3.49,1.78
+categoria,Swimwear,5406,130.47,2.643,19.9,8.341,21906,45094,3.11,6.39,3.29
+categoria,Accessories,5251,68.78,2.599,20.8,8.504,22088,44654,6.12,12.36,6.25
+categoria,Tops,4700,101.51,2.639,19.8,8.357,19144,39278,4.01,8.23,4.22
